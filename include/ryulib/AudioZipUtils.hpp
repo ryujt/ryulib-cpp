@@ -1,0 +1,16 @@
+﻿#ifndef AUDIOZIP_UTILS_HPP
+#define AUDIOZIP_UTILS_HPP
+
+
+#define CHANNEL 1
+#define SAMPLE_RATE  48000
+#define FRAMES_PER_BUFFER  3840
+#define BITRATE  64000
+
+// 최대 지연 시간 80 * 8 ms
+#define MAX_DELAY_LIMIT_COUNT  8
+
+#define ERROR_OPEN_ENCODER  -7
+#define ERROR_OPEN_DECODE  -8
+
+#endif  // AUDIOZIP_UTILS_HPP
