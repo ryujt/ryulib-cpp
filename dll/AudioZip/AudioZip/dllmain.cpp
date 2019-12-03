@@ -32,11 +32,11 @@ private:
 	CALLBACK_DATA callback_on_data_;
 	CALLBACK_ERROR callback_on_error_;
 
-	DataEvent on_data_ = [&](const void* data, int size) {
+	DataEvent on_data_ = [&](const void* obj, const void* data, int size) {
 		callback_on_data_(context_, data, size);
 	};
 
-	IntegerEvent on_error_ = [&](int error_code) {
+	IntegerEvent on_error_ = [&](const void* obj, int error_code) {
 		callback_on_error_(context_, error_code);
 	};
 
@@ -46,7 +46,7 @@ public:
 	AudioZipHandle(void* context, CALLBACK_DATA on_data, CALLBACK_ERROR on_error)
 		: context_(context), callback_on_data_(on_data), callback_on_error_(on_error)
 	{
-		object = new AudioZip();
+		object = new AudioZip(CHANNEL, SAMPLE_RATE);
 		object->setOnEncode(on_data_);
 		object->setOnError(on_error_);
 	}
@@ -58,7 +58,7 @@ private:
 
 	CALLBACK_ERROR callback_on_error_;
 
-	IntegerEvent on_error_ = [&](int error_code) {
+	IntegerEvent on_error_ = [&](const void* obj, int error_code) {
 		callback_on_error_(context_, error_code);
 	};
 
@@ -68,7 +68,7 @@ public:
 	AudioUnZipHandle(void* context, CALLBACK_ERROR on_error)
 		: context_(context), callback_on_error_(on_error)
 	{
-		object = new AudioUnZip();
+		object = new AudioUnZip(CHANNEL, SAMPLE_RATE);
 		object->setOnError(on_error_);
 	}
 };
