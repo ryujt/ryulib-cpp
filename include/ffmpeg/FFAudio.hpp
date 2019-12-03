@@ -83,10 +83,10 @@ public:
 
 	void close()
 	{
-		audio_.close();
-
-		avcodec_close(context_);
+		if (context_ != nullptr) avcodec_close(context_);
 		context_ = nullptr;
+
+		audio_.close();
 	}
 
 	void write(AVPacket* packet)
@@ -98,7 +98,11 @@ public:
 
 	bool isEmpty() { return audio_.getDelayCount() < 2; }
 
-	int64_t getPTS() { return context_->pts_correction_last_pts; }
+	int64_t getPTS() 
+	{ 
+		if (context_ == nullptr) return 0;
+		else return context_->pts_correction_last_pts; 
+	}
 
 private:
 	int stream_index_ = -1;
