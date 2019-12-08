@@ -1,7 +1,7 @@
 #ifndef RYULIB_SOCKETCLIENT_HPP
 #define RYULIB_SOCKETCLIENT_HPP
 
-#include <iostream>
+#include <ryulib/SocketUtils.hpp>
 #include <string>
 #include <functional>
 #include <boost/bind.hpp>
@@ -10,53 +10,9 @@
 #include <boost/asio.hpp>
 #include <ryulib/SimpleThread.hpp>
 
-#define HEADER_SIZE 3
-#define PACKET_LIMIT 8192
-
-const int ERROR_CONNECT = -1;  // 접속 시도 실패
-const int ERROR_READ = -2;     // 읽기 도중에 에러
-const int ERROR_WRITE = -3;    // 쓰기 도중에 에러
-
 using namespace std;
 using boost::asio::ip::tcp;
 
-#pragma pack(push,1)
-
-typedef struct _PacketHeader {
-	unsigned short packet_size;
-	char packet_type;
-} PacketHeader;
-
-typedef struct _Packet {
-	unsigned short packet_size;
-	char packet_type;
-	char data_start;
-
-	void* getData() { return &data_start; }
-	int getDataSize() { return packet_size - sizeof(PacketHeader); }
-
-	string getString() 
-	{
-		return string(&data_start, getDataSize());
-	}
-
-} Packet;
-
-#pragma pack(pop)
-
-static Packet* create_packet(char packet_type, const void* data, int size)
-{
-	Packet* packet = (Packet*) malloc(size + sizeof(PacketHeader));
-	if (packet == NULL) return nullptr;
-
-	packet->packet_type = packet_type;
-	packet->packet_size = size + sizeof(PacketHeader);
-	memcpy(&packet->data_start, data, size);
-
-	return packet;
-}
-
-typedef function<void(int, string)> ErrorEvent;
 typedef function<void()> ClientSocketEvent;
 typedef function<void(Packet*)> ClientReceivedEvent;
 
@@ -84,9 +40,7 @@ public:
 		socket_->async_connect(endpoint, boost::bind(&SocketClient::connect_handler, this, boost::asio::placeholders::error));
 
 		simple_thread_ = make_unique<SimpleThread>([&](SimpleThread* simple_thread){ 
-			printf("thread start \n");
 			io_->run();
-			printf("thread end \n");
 		});
 	}
 
@@ -118,7 +72,7 @@ public:
 		send(packet_type, (void*) text.c_str(), text.size());
 	}
 
-	void setOnError(ErrorEvent event) { on_error_ = event; }
+	void setOnError(SocketErrorEvent event) { on_error_ = event; }
 	void setOnConnected(ClientSocketEvent event) { on_connected_ = event; }
 	void setOnDisconnected(ClientSocketEvent event) { on_disconnected_ = event; }
 	void setOnReceived(ClientReceivedEvent event) { on_received_ = event; }
@@ -130,7 +84,7 @@ private:
 	unique_ptr<tcp::socket> socket_ = nullptr;
 	unique_ptr<SimpleThread> simple_thread_ = nullptr;
 
-	ErrorEvent on_error_ = nullptr;
+	SocketErrorEvent on_error_ = nullptr;
 	ClientSocketEvent on_connected_ = nullptr;
 	ClientSocketEvent on_disconnected_ = nullptr;
 	ClientReceivedEvent on_received_ = nullptr;

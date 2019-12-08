@@ -1,12 +1,35 @@
+#include <iostream>
+#include <string>
 #include <ryulib/SocketClient.hpp>
+
+using namespace std;
 
 int main()
 {
 	SocketClient socket;
-	socket.connect("100.100.100.100", 1234);
+
+	socket.setOnConnected([](){
+		printf("Connected! \n");
+	});
+
+	socket.setOnDisconnected([](){
+		printf("Disconnected! \n");
+	});
+
+	socket.setOnError([](int code, string msg){
+		printf("Error - %d, %s \n", code, msg.c_str());
+	});
+
+	socket.setOnReceived([](Packet* packet){
+		printf("Received: %s \n", packet->getString().c_str());
+	});
+
+	socket.connect("127.0.0.1", 1234);
     
 	while (true) {
-		Sleep(1000);
-	}
+		string line;
+		getline(cin, line);
 
+		socket.send(0, line);
+	}
 }
