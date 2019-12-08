@@ -92,7 +92,7 @@ private:
 	void handle_read_header(const boost::system::error_code& error) {
 		if (!error) {
 			if (packet_->packet_size > PACKET_LIMIT) {
-					server_->fire_error_event(-1, "packet_->packet_size > PACKET_LIMIT");				
+				server_->fire_error_event(-1, "packet_->packet_size > PACKET_LIMIT");				
 				server_->fire_disconnected_event(this);
 			}
 
