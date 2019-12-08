@@ -79,7 +79,7 @@ private:
 	}
 
 	void start() {
-		packet_ = (Packet*) malloc(PACKET_LIMIT);
+		packet_ = (Packet*) malloc(PACKET_LIMIT * 2);
 
 		server_->fire_connected_event(this);
 
