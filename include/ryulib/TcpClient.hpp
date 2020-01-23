@@ -159,10 +159,7 @@ private:
 	void do_sendData(void* text, int size) {
 		if (socket_ == 0) return;
 
-        try {
-            bool result = send(socket_, text, size, 0) > 0;
-            if (!result) throw "socket error on sending text.";
-        } catch (...) {
+		if (send(socket_, text, size, 0) <= 0) {
             do_disconnect(0, nullptr, 0, 0);
             if (on_disconnected_ != nullptr) on_disconnected_();
         }
@@ -171,10 +168,10 @@ private:
 	void do_receive() {
 		if (socket_ == 0) return;
 
-		// 문자열 터미널 추가를 위해 4097크기여도 되지만 개인 취향임
+		// 문자열의 터미널 문자까지 4097크기여도 되지만 개인 취향임 (4로 나눠떨어지는 수)
 		char buffer[4096 + 4];
 		int received_bytes = recv(socket_, buffer, 4096, MSG_DONTWAIT);
-		if (received_bytes == 0) {
+		if (received_bytes <= 0) {
 			do_disconnect(0, nullptr, 0, 0);
 			if (on_disconnected_ != nullptr) on_disconnected_();
 		}
