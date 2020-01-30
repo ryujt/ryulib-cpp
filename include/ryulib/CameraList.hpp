@@ -20,7 +20,7 @@ public:
 	*/
 	void update()
 	{
-		HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+		HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 		if (FAILED(hr)) return;
 
 		IEnumMoniker *pEnum;
