@@ -200,6 +200,19 @@ public:
 		queue_.push(memory);
 	}
 
+	/** 주어진 숫자만큼 버퍼 앞부분에서 오디오 패킷을 삭제한다.
+	음성 송수신 등에 의해서 발생한 딜레이를 제거하기 위해서 사용한다.
+	@param count 스킵할 오디오 데이터 개수
+	*/
+	void skip(int count)
+	{
+		for (int i=0; i<count; i++) {
+			Memory* memory;
+			if (queue_.pop(memory) == false) break;
+			delete memory;
+		}
+	}
+
 	/** 오디오 출력 장치를 사용할 수 있는가? */
 	bool isActive() { return Pa_IsStreamActive(stream_) == 1; }
 

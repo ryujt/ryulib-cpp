@@ -51,6 +51,15 @@ public:
 		audio_decoder_.add(data, size);
 	}
 
+	/** 주어진 숫자만큼 버퍼 앞부분에서 오디오 패킷을 삭제한다.
+	음성 송수신 등에 의해서 발생한 딜레이를 제거하기 위해서 사용한다.
+	@param count 스킵할 오디오 데이터 개수
+	*/
+	void skip(int count=1)
+	{
+		audio_output_.skip(count);
+	}
+
 	/** 출력이 끝나지 않은 패킷의 갯수 */
 	int getDelayCount() { return audio_output_.getDelayCount(); }
 

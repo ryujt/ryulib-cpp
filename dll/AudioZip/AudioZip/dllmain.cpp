@@ -111,6 +111,16 @@ extern "C" __declspec(dllexport) void playAudio(AudioUnZipHandle* handle, const 
 	handle->object->play(data, size);
 }
 
+extern "C" __declspec(dllexport) void skipAudio(AudioUnZipHandle* handle, int count)
+{
+	handle->object->skip(count);
+}
+
+extern "C" __declspec(dllexport) int getDelayCount(AudioUnZipHandle* handle)
+{
+	return handle->object->getDelayCount();
+}
+
 extern "C" __declspec(dllexport) void releaseAudioUnZip(AudioUnZipHandle* handle)
 {
 	handle->object->setOnError(nullptr);
