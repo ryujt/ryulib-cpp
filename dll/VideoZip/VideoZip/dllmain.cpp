@@ -26,7 +26,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 
 class VideopZipHandle {
 public:
-	bool open(int width, int height)
+	bool open(int index, int width, int height)
 	{
 		width_ = width;
 		height_ = height;
@@ -34,7 +34,7 @@ public:
 		cap_.set(CAP_PROP_CONVERT_RGB, true);
 		cap_.set(CAP_PROP_FRAME_WIDTH, width);
 		cap_.set(CAP_PROP_FRAME_HEIGHT, height);
-		cap_.open(0);
+		cap_.open(index);
 		if (cap_.isOpened() == false) return false;
 
 		cam_width_  = cap_.get(CAP_PROP_FRAME_WIDTH);
@@ -52,12 +52,14 @@ public:
 
 	void encode()
 	{
-		Mat img_src;
-		Mat img_dst;
+		cap_.read(img_src_);
+		resize(img_src_, img_dst_, Size(width_, height_), 0, 0, INTER_LINEAR);
+		video_zip_.encode(img_dst_.data, 24);	
+	}
 
-		cap_.read(img_src);
-		resize(img_src, img_dst, Size(width_, height_), 0, 0, INTER_LINEAR);
-		video_zip_.encode(img_dst.data, 24);	
+	void* getBitmap()
+	{
+		return img_dst_.data; 
 	}
 
 	void* getData() 
@@ -73,6 +75,9 @@ public:
 private:
 	VideoCapture cap_;
 	VideoZip video_zip_;
+
+	Mat img_src_;
+	Mat img_dst_;
 
 	int width_;
 	int height_;
@@ -145,27 +150,32 @@ extern "C" __declspec(dllexport) void releaseVideoZip(VideopZipHandle* handle)
 	delete handle;
 }
 
-extern "C" __declspec(dllexport) bool openVideopZip(VideopZipHandle* handle, int width, int height)
+extern "C" __declspec(dllexport) bool openVideoZip(VideopZipHandle* handle, int index, int width, int height)
 {
-	return handle->open(width, height);
+	return handle->open(index, width, height);
 }
 
-extern "C" __declspec(dllexport) void closeVideopZip(VideopZipHandle* handle)
+extern "C" __declspec(dllexport) void closeVideoZip(VideopZipHandle* handle)
 {
 	handle->close();
 }
 
-extern "C" __declspec(dllexport) void encode(VideopZipHandle* handle)
+extern "C" __declspec(dllexport) void encodeVideoZip(VideopZipHandle* handle)
 {
 	handle->encode();
 }
 
-extern "C" __declspec(dllexport) void* getData(VideopZipHandle* handle)
+extern "C" __declspec(dllexport) void* getVideoZipBitmap(VideopZipHandle* handle)
+{
+	return handle->getBitmap();
+}
+
+extern "C" __declspec(dllexport) void* getVideoZipData(VideopZipHandle* handle)
 {
 	return handle->getData();
 }
 
-extern "C" __declspec(dllexport) int getSize(VideopZipHandle* handle)
+extern "C" __declspec(dllexport) int getVideoZipSize(VideopZipHandle* handle)
 {
 	return handle->getSize();
 }
@@ -181,22 +191,22 @@ extern "C" __declspec(dllexport) void releaseVideoUnZip(VideoUnZipHandle* handle
 	delete handle;
 }
 
-extern "C" __declspec(dllexport) void openVideopUnZip(VideoUnZipHandle* handle, int width, int height)
+extern "C" __declspec(dllexport) void openVideoUnZip(VideoUnZipHandle* handle, int width, int height)
 {
 	handle->open(width, height);
 }
 
-extern "C" __declspec(dllexport) void refresh(VideoUnZipHandle* handle)
+extern "C" __declspec(dllexport) void refreshVideoUnZip(VideoUnZipHandle* handle)
 {
 	handle->refresh();
 }
 
-extern "C" __declspec(dllexport) void decode(VideoUnZipHandle* handle, void* data, int size)
+extern "C" __declspec(dllexport) void decodeVideoUnZip(VideoUnZipHandle* handle, void* data, int size)
 {
 	handle->decode(data, size);
 }
 
-extern "C" __declspec(dllexport) void* getBitmap(VideoUnZipHandle* handle)
+extern "C" __declspec(dllexport) void* getVideoUnZipBitmap(VideoUnZipHandle* handle)
 {
 	return handle->getBitmap();
 }
