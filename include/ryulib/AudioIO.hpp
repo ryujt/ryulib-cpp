@@ -96,11 +96,27 @@ public:
 	}
 
 	/** 오디오가 캡쳐되는 중인지 알려준다.
-	@return true: 오디오 캡쳐 중, false: 오디오 캡쳐가 중단됨
+	@return 오디오 캡쳐 중, false: 오디오 캡쳐가 중단됨
 	*/
 	bool isActive()
 	{
 		return Pa_IsStreamActive(stream_) == 1;
+	}
+
+	/** 볼륨상태를 알려준다. 
+	@return 1.0은 원음 크기를 의미하고 0.5는 50%의 볼륨이다.
+	*/
+	float getVolume() 
+	{ 
+		return volume_; 
+	}
+
+	/** 볼륨 크기를 결정한다.
+	@param value 마이크에서 입력된 음량의 크기를 결정한다. 1.0은 원음 크기를 의미하고 0.5는 50%의 볼륨이다.
+	*/
+	void setVolume(float value) 
+	{
+		volume_ = value;
 	}
 
 	/** OnError 이벤트 핸들러를 지정한다.
@@ -114,10 +130,17 @@ public:
 	void setOnData(const DataEvent &value) { on_data_ = value; }
 
 private:
-	static int recordCallback(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer, 
-		const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void *userData) 
+	static int recordCallback(const void* inputBuffer, void* outputBuffer, unsigned long framesPerBuffer, 
+		const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void* userData) 
 	{
 		AudioInput *audio_input = (AudioInput *) userData;
+
+		float* data = (float*) inputBuffer;
+		for (int i = 0; i < audio_input->fpb_; i++) {
+			*data = (*data) * audio_input->volume_;
+			data++;
+		}
+
 		if (audio_input->on_data_ != nullptr) audio_input->on_data_(audio_input, inputBuffer, audio_input->buffer_size_);
 		return paContinue;
 	}
@@ -126,6 +149,8 @@ private:
 	int sampe_rate_;
 	int fpb_;
 	int buffer_size_;
+
+	float volume_ = 1.0;
 
 	PaStream* stream_;
 	IntegerEvent OnError_ = nullptr;
@@ -219,6 +244,22 @@ public:
 	/** 출력이 끝나지 않은 패킷의 갯수 */
 	int getDelayCount() { return queue_.size(); }
 
+	/** 볼륨상태를 알려준다. 
+	@return 1.0은 원음 크기를 의미하고 0.5는 50%의 볼륨이다.
+	*/
+	float getVolume() 
+	{ 
+		return volume_; 
+	}
+
+	/** 볼륨 크기를 결정한다.
+	@param value 스피커를 통해서 출력 될 음량의 크기를 결정한다. 1.0은 원음 크기를 의미하고 0.5는 50%의 볼륨이다.
+	*/
+	void setVolume(float value) 
+	{
+		volume_ = value;
+	}
+
 	/** OnError 이벤트 핸들러를 지정한다.
 	@param event 에러가 났을 때 실행될 이벤트 핸들러
 	*/
@@ -232,10 +273,17 @@ private:
 		void *userData) 
 	{
 		AudioOutput *audio_output = (AudioOutput *) userData;
+
 		Memory* memory;
 		if (audio_output->queue_.pop(memory)) {
 			memcpy(outputBuffer, memory->getData(), memory->getSize());
 			delete memory;
+
+			float* data = (float*) outputBuffer;
+			for (int i = 0; i < audio_output->fpb_; i++) {
+				*data = (*data) * audio_output->volume_;
+				data++;
+			}
 		} else {
 			memcpy(outputBuffer, audio_output->mute_, audio_output->buffer_size_);
 		}
@@ -247,6 +295,8 @@ private:
 	int fpb_;
 	int buffer_size_;
 	void *mute_;
+
+	float volume_ = 1.0;
 
 	PaStream *stream_;
 	ThreadQueue<Memory*> queue_;

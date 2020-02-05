@@ -93,6 +93,16 @@ extern "C" __declspec(dllexport) void stopAudioZip(AudioZipHandle* handle)
 	handle->object->stop();
 }
 
+extern "C" __declspec(dllexport) float getMicVolume(AudioZipHandle* handle)
+{
+	return handle->object->getVolume();
+}
+
+extern "C" __declspec(dllexport) void setMicVolume(AudioZipHandle* handle, float volume)
+{
+	handle->object->setVolume(volume);
+}
+
 extern "C" __declspec(dllexport) void releaseAudioZip(AudioZipHandle* handle)
 {
 	handle->object->setOnError(nullptr);
@@ -119,6 +129,16 @@ extern "C" __declspec(dllexport) void skipAudio(AudioUnZipHandle* handle, int co
 extern "C" __declspec(dllexport) int getDelayCount(AudioUnZipHandle* handle)
 {
 	return handle->object->getDelayCount();
+}
+
+extern "C" __declspec(dllexport) float getSpeakerVolume(AudioUnZipHandle* handle)
+{
+	return handle->object->getVolume();
+}
+
+extern "C" __declspec(dllexport) void setSpeakerVolume(AudioUnZipHandle* handle, float volume)
+{
+	handle->object->setVolume(volume);
 }
 
 extern "C" __declspec(dllexport) void releaseAudioUnZip(AudioUnZipHandle* handle)

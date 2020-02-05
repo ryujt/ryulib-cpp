@@ -63,6 +63,22 @@ public:
 	/** 출력이 끝나지 않은 패킷의 갯수 */
 	int getDelayCount() { return audio_output_.getDelayCount(); }
 
+	/** 볼륨상태를 알려준다. 
+	@return 1.0은 원음 크기를 의미하고 0.5는 50%의 볼륨이다.
+	*/
+	float getVolume() 
+	{ 
+		return audio_output_.getVolume(); 
+	}
+
+	/** 볼륨 크기를 결정한다.
+	@param value 스피커를 통해서 출력 될 음량의 크기를 결정한다. 1.0은 원음 크기를 의미하고 0.5는 50%의 볼륨이다.
+	*/
+	void setVolume(float value) 
+	{
+		audio_output_.setVolume(value);
+	}
+
 	/** OnError 이벤트 핸들러를 지정한다.
 	@param event 에러가 났을 때 실행될 이벤트 핸들러
 	*/
