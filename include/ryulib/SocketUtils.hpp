@@ -5,8 +5,8 @@
 #include <functional>
 
 const int HEADER_SIZE = 3;
-const int PACKET_LIMIT = 8192;
-const int MAX_CONNECTION = 8192;
+const int PACKET_LIMIT = 32768;
+const int MAX_CONNECTION = 4096;
 
 const int ERROR_CONNECT = -1;
 const int ERROR_READ = -2;
