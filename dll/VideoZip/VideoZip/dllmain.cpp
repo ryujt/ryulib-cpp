@@ -49,10 +49,14 @@ public:
 		video_zip_.close();
 	}
 
-	void encode()
+	void capture()
 	{
 		cap_.read(img_src_);
 		resize(img_src_, img_dst_, Size(width_, height_), 0, 0, INTER_LINEAR);
+	}
+
+	void encode()
+	{
 		video_zip_.encode(img_dst_.data, 24);	
 	}
 
@@ -120,6 +124,11 @@ extern "C" __declspec(dllexport) bool openVideoZip(VideopZipHandle* handle, int 
 extern "C" __declspec(dllexport) void closeVideoZip(VideopZipHandle* handle)
 {
 	handle->close();
+}
+
+extern "C" __declspec(dllexport) void captureVideoZip(VideopZipHandle* handle)
+{
+	handle->capture();
 }
 
 extern "C" __declspec(dllexport) void encodeVideoZip(VideopZipHandle* handle)
