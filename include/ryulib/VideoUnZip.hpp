@@ -1,9 +1,11 @@
 ﻿#ifndef RYU_VIDEOUNZIP_HPP
 #define RYU_VIDEOUNZIP_HPP
 
+#include <stdlib.h>
 #include <vpx/vpx_codec.h>
 #include <vpx/vpx_decoder.h>
 #include <vpx/vp8dx.h>
+#include <ryulib/debug_tools.hpp>
 #include <ryulib/yuv_tools.hpp>
 
 #define interfaceDec (vpx_codec_vp8_dx())
@@ -35,7 +37,7 @@ public:
 
 		int flags = 0;
 		if (vpx_codec_dec_init(&codec_, interfaceDec, &cfgDec_, flags)) {
-			printf("error - vpx_codec_dec_init \n");
+			DebugOutput::trace("error - vpx_codec_dec_init \n");
 			return false;
 		}
 

@@ -1,6 +1,7 @@
 #ifndef RYULIB_DEBUG_TOOLS_HPP
 #define RYULIB_DEBUG_TOOLS_HPP
 
+#include <stdio.h>
 #include <Windows.h>
 
 using namespace std;
