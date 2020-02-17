@@ -19,8 +19,7 @@ extern "C" {
 #include <libswresample/swresample.h>
 }
 
-#define STREAM_DURATION   10.0
-
+#define VIDEO_BITRATE     (1024 * 1024)
 #define STREAM_FRAME_RATE 25
 #define PIXEL_SIZE        4
 
@@ -272,7 +271,7 @@ private:
 
         c->codec_id = fmt->video_codec;
 
-        c->bit_rate = 1024 * 1024;
+        c->bit_rate = VIDEO_BITRATE;
         c->width    = width;
         c->height   = height;
         video_st.st->time_base.num = 1;
