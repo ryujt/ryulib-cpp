@@ -21,7 +21,9 @@ extern "C" {
 
 #define VIDEO_BITRATE     (1024 * 1024)
 #define STREAM_FRAME_RATE 25
+#define AUDIO_FORMAT      AV_SAMPLE_FMT_S16
 #define PIXEL_SIZE        4
+#define SAMPLE_SIZE       2
 
 typedef struct OutputStream {
     AVStream *st;
@@ -30,10 +32,10 @@ typedef struct OutputStream {
     int64_t next_pts;
     int samples_count;
 
+    int nb_samples;
+
     AVFrame *frame;
     AVFrame *tmp_frame;
-
-    float t, tincr, tincr2;
 
     struct SwsContext *sws_ctx;
     struct SwrContext *swr_ctx;
@@ -41,31 +43,23 @@ typedef struct OutputStream {
 
 class VideoCreater {
 public:
-    VideoCreater(const char* afilename, int awidth, int aheight)
-        : filename(afilename), width(awidth), height(aheight)
+    /** VideoCreater 생성자
+    @param filename 생성할 비디오 파일의 이름 (확장자 포함)
+    @param width 입력할 bitmap 화면의 넓이
+    @param height 입력할 bitmap 화면의 높이
+    */
+    VideoCreater(const char* filename, int width, int height)
+        : filename_(filename), width_(width), height_(height)
     {
         int ret = 0;
 
-        video_st.frame = alloc_picture(AV_PIX_FMT_YUV420P, width, height);
-        if (video_st.frame == NULL) {
-            DebugOutput::trace("createVideo - error alloc_picture(AV_PIX_FMT_YUV420P...)");
-            return;
-        }
-
-        video_st.tmp_frame = alloc_picture(AV_PIX_FMT_BGRA, width, height);
-        if (video_st.tmp_frame == NULL) {
-            DebugOutput::trace("createVideo - error alloc_picture(AV_PIX_FMT_BGRA...)");
-            return;
-        }
-
-        avformat_alloc_output_context2(&oc, NULL, NULL, filename);
+        avformat_alloc_output_context2(&oc, NULL, NULL, filename_);
         if (!oc) {
             DebugOutput::trace("createVideo - error avformat_alloc_output_context2");
             return;
         }
 
         fmt = oc->oformat;
-
         if (fmt->video_codec == AV_CODEC_ID_NONE) {
             DebugOutput::trace("createVideo - fmt->video_codec == AV_CODEC_ID_NONE");
             return;
@@ -82,12 +76,12 @@ public:
         if (add_audio_stream() == false) return;
         if (open_audio() == false) return;
 
-        av_dump_format(oc, 0, filename, 1);
+        av_dump_format(oc, 0, filename_, 1);
 
         if (!(fmt->flags & AVFMT_NOFILE)) {
-            int ret = avio_open(&oc->pb, filename, AVIO_FLAG_WRITE);
+            int ret = avio_open(&oc->pb, filename_, AVIO_FLAG_WRITE);
             if (ret < 0) {
-                DebugOutput::trace("createVideo - Could not open '%s'", filename);
+                DebugOutput::trace("createVideo - Could not open '%s'", filename_);
                 return;
             }
         }
@@ -126,7 +120,7 @@ public:
             video_st.sws_ctx = sws_getContext(c->width, c->height,
                 AV_PIX_FMT_BGRA,
                 c->width, c->height,
-                AV_PIX_FMT_YUV420P,
+                c->pix_fmt,
                 SWS_BICUBIC, NULL, NULL, NULL);
             if (!video_st.sws_ctx) {
                 DebugOutput::trace("writeBitmap - Could not initialize the conversion context");
@@ -163,6 +157,56 @@ public:
         return true;
     }
 
+    bool writeAudioPacket(void* packet)
+    {
+        AVCodecContext *c = audio_st.enc;
+        AVPacket pkt = {0};
+        int ret;
+        int got_packet;
+
+        av_init_packet(&pkt);
+
+        memcpy(audio_st.tmp_frame->data[0], packet, audio_st.tmp_frame->nb_samples * SAMPLE_SIZE * c->channels);
+        audio_st.tmp_frame->pts = audio_st.next_pts;
+        audio_st.next_pts += audio_st.tmp_frame->nb_samples;
+
+        int dst_nb_samples = av_rescale_rnd(swr_get_delay(audio_st.swr_ctx, c->sample_rate) + audio_st.tmp_frame->nb_samples, c->sample_rate, c->sample_rate, AV_ROUND_UP);
+        av_assert0(dst_nb_samples == audio_st.tmp_frame->nb_samples);
+
+        ret = av_frame_make_writable(audio_st.frame);
+        if (ret < 0) {
+            return false;
+        }
+
+        ret = swr_convert(audio_st.swr_ctx, audio_st.frame->data, dst_nb_samples, (const uint8_t **)audio_st.tmp_frame->data, audio_st.tmp_frame->nb_samples);
+        if (ret < 0) {
+            fprintf(stderr, "Error while converting\n");
+            return false;
+        }
+
+        AVRational time_base;
+        time_base.num = 1;
+        time_base.den = c->sample_rate;
+        audio_st.frame->pts = av_rescale_q(audio_st.samples_count, time_base, c->time_base);
+        audio_st.samples_count += audio_st.frame->nb_samples;
+
+        ret = avcodec_encode_audio2(c, &pkt, audio_st.frame, &got_packet);
+        if (ret < 0) {
+            fprintf(stderr, "Error encoding audio frame\n");
+            return false;
+        }
+
+        if (got_packet) {
+            ret = write_frame(oc, &c->time_base, audio_st.st, &pkt);
+            if (ret < 0) {
+                fprintf(stderr, "Error while writing audio frame\n");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     bool isVideoTurn()
     {
         return av_compare_ts(
@@ -177,8 +221,30 @@ public:
         return ! isVideoTurn();
     }
 
-    const char *filename;
-    int width, height;
+    int getChannels()
+    {
+        return audio_st.enc->channels;
+    }
+
+    int getSampleRate()
+    {
+        return audio_st.enc->sample_rate;
+    }
+
+    // TODO: 테스트에서만 사용하고 지울 예정
+    bool isEOF(float duration)
+    {
+        AVRational time_base;
+        time_base.num = 1;
+        time_base.den = 1;
+        return 
+            (av_compare_ts(video_st.next_pts, video_st.enc->time_base, duration, time_base) >= 0) ||
+            (av_compare_ts(audio_st.next_pts, audio_st.enc->time_base, duration, time_base) >= 0);
+    }
+
+private:
+    const char *filename_;
+    int width_, height_;
 
     OutputStream video_st = {0}, audio_st = {0};
     AVOutputFormat *fmt;
@@ -186,7 +252,6 @@ public:
     AVCodec *audio_codec = nullptr;
     AVCodec *video_codec = nullptr;
 
-private:
     AVFrame *alloc_audio_frame(enum AVSampleFormat sample_fmt, uint64_t channel_layout, int sample_rate, int nb_samples)
     {
         AVFrame *frame = av_frame_alloc();
@@ -272,8 +337,8 @@ private:
         c->codec_id = fmt->video_codec;
 
         c->bit_rate = VIDEO_BITRATE;
-        c->width    = width;
-        c->height   = height;
+        c->width    = width_;
+        c->height   = height_;
         video_st.st->time_base.num = 1;
         video_st.st->time_base.den = STREAM_FRAME_RATE;
         c->time_base       = video_st.st->time_base;
@@ -316,17 +381,15 @@ private:
             DebugOutput::trace("Could not alloc an encoding context");
             return false;
         }
-        audio_st.enc = c;
 
-        c->sample_fmt  = (audio_codec)->sample_fmts ?
-            (audio_codec)->sample_fmts[0] : AV_SAMPLE_FMT_FLTP;
+        audio_st.enc = c;
+        c->sample_fmt  = (audio_codec)->sample_fmts ? (audio_codec)->sample_fmts[0] : AV_SAMPLE_FMT_FLTP;
         c->bit_rate    = 64000;
         c->sample_rate = 44100;
         if ((audio_codec)->supported_samplerates) {
             c->sample_rate = (audio_codec)->supported_samplerates[0];
             for (i = 0; (audio_codec)->supported_samplerates[i]; i++) {
-                if ((audio_codec)->supported_samplerates[i] == 44100)
-                    c->sample_rate = 44100;
+                if ((audio_codec)->supported_samplerates[i] == 44100) c->sample_rate = 44100;
             }
         }
         c->channels       = av_get_channel_layout_nb_channels(c->channel_layout);
@@ -334,17 +397,14 @@ private:
         if ((audio_codec)->channel_layouts) {
             c->channel_layout = (audio_codec)->channel_layouts[0];
             for (i = 0; (audio_codec)->channel_layouts[i]; i++) {
-                if ((audio_codec)->channel_layouts[i] == AV_CH_LAYOUT_STEREO)
-                    c->channel_layout = AV_CH_LAYOUT_STEREO;
+                if ((audio_codec)->channel_layouts[i] == AV_CH_LAYOUT_STEREO) c->channel_layout = AV_CH_LAYOUT_STEREO;
             }
         }
-        c->channels        = av_get_channel_layout_nb_channels(c->channel_layout);
+        c->channels = av_get_channel_layout_nb_channels(c->channel_layout);
         audio_st.st->time_base.num = 1;
         audio_st.st->time_base.den = c->sample_rate;
 
-        /* Some formats want stream headers to be separate. */
-        if (oc->oformat->flags & AVFMT_GLOBALHEADER)
-            c->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+        if (oc->oformat->flags & AVFMT_GLOBALHEADER) c->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 
         return true;
     }
@@ -358,7 +418,6 @@ private:
         av_dict_copy(&opt, NULL, 0);
         av_opt_set(c->priv_data, "preset", "slow", 0);
 
-        /* open the codec */
         ret = avcodec_open2(c, video_codec, &opt);
         av_dict_free(&opt);
         if (ret < 0) {
@@ -366,10 +425,15 @@ private:
             return false;
         }
 
-        /* allocate and init a re-usable frame */
         video_st.frame = alloc_picture(c->pix_fmt, c->width, c->height);
-        if (!video_st.frame) {
-            DebugOutput::trace("Could not allocate video frame");
+        if (video_st.frame == NULL) {
+            DebugOutput::trace("createVideo - error alloc_picture(c->pix_fmt...)");
+            return false;
+        }
+
+        video_st.tmp_frame = alloc_picture(AV_PIX_FMT_BGRA, c->width, c->height);
+        if (video_st.tmp_frame == NULL) {
+            DebugOutput::trace("createVideo - error alloc_picture(AV_PIX_FMT_BGRA...)");
             return false;
         }
 
@@ -384,14 +448,10 @@ private:
 
     bool open_audio()
     {
-        AVCodecContext *c;
-        int nb_samples;
+        AVCodecContext *c = audio_st.enc;
         int ret;
         AVDictionary *opt = NULL;
 
-        c = audio_st.enc;
-
-        /* open it */
         av_dict_copy(&opt, NULL, 0);
         ret = avcodec_open2(c, audio_codec, &opt);
         av_dict_free(&opt);
@@ -400,21 +460,13 @@ private:
             return false;
         }
 
-        /* init signal generator */
-        audio_st.t     = 0;
-        audio_st.tincr = 2 * M_PI * 110.0 / c->sample_rate;
-        /* increment frequency by 110 Hz per second */
-        audio_st.tincr2 = 2 * M_PI * 110.0 / c->sample_rate / c->sample_rate;
-
         if (c->codec->capabilities & AV_CODEC_CAP_VARIABLE_FRAME_SIZE)
-            nb_samples = 10000;
+            audio_st.nb_samples = 10000;
         else
-            nb_samples = c->frame_size;
+            audio_st.nb_samples = c->frame_size;
 
-        audio_st.frame     = alloc_audio_frame(c->sample_fmt, c->channel_layout,
-            c->sample_rate, nb_samples);
-        audio_st.tmp_frame = alloc_audio_frame(AV_SAMPLE_FMT_S16, c->channel_layout,
-            c->sample_rate, nb_samples);
+        audio_st.frame     = alloc_audio_frame(c->sample_fmt, c->channel_layout, c->sample_rate, audio_st.nb_samples);
+        audio_st.tmp_frame = alloc_audio_frame(AUDIO_FORMAT,  c->channel_layout, c->sample_rate, audio_st.nb_samples);
 
         ret = avcodec_parameters_from_context(audio_st.st->codecpar, c);
         if (ret < 0) {
@@ -428,10 +480,9 @@ private:
             return false;
         }
 
-        /* set options */
         av_opt_set_int       (audio_st.swr_ctx, "in_channel_count",   c->channels,       0);
         av_opt_set_int       (audio_st.swr_ctx, "in_sample_rate",     c->sample_rate,    0);
-        av_opt_set_sample_fmt(audio_st.swr_ctx, "in_sample_fmt",      AV_SAMPLE_FMT_S16, 0);
+        av_opt_set_sample_fmt(audio_st.swr_ctx, "in_sample_fmt",      AUDIO_FORMAT,      0);
         av_opt_set_int       (audio_st.swr_ctx, "out_channel_count",  c->channels,       0);
         av_opt_set_int       (audio_st.swr_ctx, "out_sample_rate",    c->sample_rate,    0);
         av_opt_set_sample_fmt(audio_st.swr_ctx, "out_sample_fmt",     c->sample_fmt,     0);
