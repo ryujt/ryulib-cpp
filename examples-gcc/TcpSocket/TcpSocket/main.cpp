@@ -12,7 +12,7 @@ int main()
 
 	TcpClient socket;	
 	socket.setOnConnected(
-		[]() {
+		[&]() {
 			printf("Connected. \n");
 		}
 	);	
@@ -29,21 +29,19 @@ int main()
 			text[size] = 0x00;
 			lines = lines + text;
 
-			//printf("Received - size: %d \n", size);
-			//printf("%s \n", text);
+			printf("Received - size: %d \n", size);
+			printf("%s \n", text);
 		}
 	);
 	socket.setOnError(
-		[](int code, string msg) {
+		[](const void* sender, int code, string msg) {
 			printf("%s \n", msg.c_str());
 		}
 	);
 
-	//char* host = "127.0.0.1";
-	//int port = 22;
-
-	char* host = "www.google.com";
-	int port = 80;
+	//char* host = "www.google.com";
+	char* host = "182.252.178.102";
+	int port = 8282;
 
 	while (true) {
 		int cmd;

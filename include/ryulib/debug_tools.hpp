@@ -2,19 +2,28 @@
 #define RYULIB_DEBUG_TOOLS_HPP
 
 #include <stdio.h>
-#include <Windows.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 using namespace std;
 
 class DebugOutput {
 public:
 	static void trace(const char* format, ...) {
-		char buffer[4096];
 		va_list vaList;
-		va_start(vaList, format);
-		_vsnprintf_s(buffer, 4096, format, vaList);
-		va_end(vaList);
-		OutputDebugStringA(buffer);
+
+		#ifdef __linux__ 
+			printf(format, vaList);
+			printf("\n");
+		#elif _WIN32
+			char buffer[4096];
+			va_start(vaList, format);
+			_vsnprintf_s(buffer, 4096, format, vaList);
+			va_end(vaList);
+			OutputDebugStringA(buffer);
+		#endif
 	}
 };
 

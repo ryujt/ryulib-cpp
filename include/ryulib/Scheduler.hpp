@@ -75,7 +75,7 @@ public:
 	}
 
 	void add(int task, string text, void* data, int size, int tag) {
-		TaskOfScheduler* t = new TaskOfScheduler(task, "", data, size, tag);
+		TaskOfScheduler* t = new TaskOfScheduler(task, text, data, size, tag);
 		queue_.push(t);
 		thread_->wakeUp();
 	}
