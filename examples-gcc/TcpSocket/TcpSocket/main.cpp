@@ -39,9 +39,8 @@ int main()
 		}
 	);
 
-	//char* host = "www.google.com";
-	char* host = "182.252.178.102";
-	int port = 8282;
+	char* host = "www.google.com";
+	int port = 80;
 
 	while (true) {
 		int cmd;
