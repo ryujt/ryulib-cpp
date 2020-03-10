@@ -30,10 +30,8 @@ public:
 	TcpClient() {
 		worker_.setOnRepeat(
 			[&]() {
-				if (socket_ == 0) {
+				if (do_receive() == false) {
 					worker_.sleep(5);
-				} else {
-					do_receive();
 				}
 			}
 		);
@@ -127,7 +125,7 @@ private:
 			return;
 		}
 
-		FD_SET(socket_, &fd_read_);        
+		FD_SET(socket_, &fd_read_); 
 
 		long arg = fcntl(socket_, F_GETFL, NULL);
 		arg = arg | O_NONBLOCK;
@@ -166,16 +164,20 @@ private:
         }
 	}
 
-	void do_receive() {
-		if (socket_ == 0) return;
+	bool do_receive() {
+		if (socket_ == 0) return false;
 
 		// add 4 bytes more for safe
 		char buffer[4096 + 4];
 		int received_bytes = recv(socket_, buffer, 4096, MSG_DONTWAIT);
+		if (received_bytes <= 0) return false;
+
 		while (received_bytes > 0) {
 			if (on_received_ != nullptr) on_received_(buffer, received_bytes);
 			received_bytes = recv(socket_, buffer, 4096, MSG_DONTWAIT);
 		}
+
+		return true;
 	}
 };
 
