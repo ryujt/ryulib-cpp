@@ -67,26 +67,12 @@ private:
 	int size_ = 0;
 };
 
-class Packet {
-public:
-	Packet(const void* data, int size)
-		: data_(data), size_(size), tag_(nullptr)
-	{
-	}
-
-	Packet(const void* data, int size, const void* tag)
-		: data_(data), size_(size), tag_(tag)
-	{
-	}
-
-	const void* getData() { return data_; }
-	int getSize() { return size_; }
-	const void* getTag() { return tag_; }
-
-private:
-	const void* data_ = nullptr;
-	int size_ = 0;
-	const void* tag_ = nullptr;
-};
+#pragma pack(push, 1)
+typedef struct _Packet {
+	unsigned short packetSize;
+	char packetType;
+	char dataStart;
+} Packet;
+#pragma pack(pop)
 
 #endif  // RYULIB_BASE_HPP
