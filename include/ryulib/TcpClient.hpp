@@ -45,8 +45,8 @@ public:
 					case ttDisconnect: do_disconnect(); break;
                         
                     case ttSendData: {
-                         do_sendData(data, size);
-                        delete data;
+                        do_sendData(data, size);
+                        free((void*) data);
                     } break;
 
                     case ttSendText: {
@@ -80,6 +80,7 @@ public:
     }
     
     void sendText(const char* text) {
+		// TODO:
         string* str = new string(text);
         worker_.add(ttSendText, "", str, 0, 0);
     }
