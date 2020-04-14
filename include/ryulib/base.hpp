@@ -93,9 +93,21 @@ static Packet* create_packet(char packet_type, const void* data, int size)
 
 	packet->packet_type = packet_type;
 	packet->packet_size = size + sizeof(Packet) - 1;
-	memcpy(&packet->data_start, data, size);
+	if (size > 0) memcpy(&packet->data_start, data, size);
 
 	return packet;
+}
+
+static Packet* create_packet(char packet_type, string text)
+{
+    Packet* packet = (Packet*) malloc(text.size() + sizeof(Packet) - 1);
+    if (packet == NULL) return nullptr;
+
+    packet->packet_type = packet_type;
+    packet->packet_size = text.size() + sizeof(Packet) - 1;
+	if (text.size() > 0) memcpy(&packet->data_start, text.c_str(), text.size());
+
+    return packet;
 }
 
 #endif  // RYULIB_BASE_HPP

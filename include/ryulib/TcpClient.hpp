@@ -6,6 +6,7 @@
 #include <ryulib/debug_tools.hpp>
 #include <ryulib/Scheduler.hpp>
 #include <iostream>
+#include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
@@ -30,7 +31,11 @@ public:
 	TcpClient() {
 		worker_.setOnRepeat(
 			[&]() {
-				if (do_receive() == false) {
+				if (do_receive()) {
+                    idle_count_ = 0;
+				} else {
+                    idle_count_ = idle_count_ + 5;
+					if (on_repeat_ != nullptr) on_repeat_();
 					worker_.sleep(5);
 				}
 			}
@@ -45,7 +50,7 @@ public:
 					case ttDisconnect: do_disconnect(); break;
                         
                     case ttSendData: {
-                        do_sendData(data, size);
+						do_sendData(data, size);
                         free((void*) data);
                     } break;
 
@@ -58,6 +63,12 @@ public:
 			}
 		);
 		worker_.start();
+	}
+
+	void terminate()
+	{
+		disconnect();
+		worker_.terminateAndWait();
 	}
 
 	void connect(string host, int port) {
@@ -80,19 +91,21 @@ public:
     }
     
     void sendText(const char* text) {
-		// TODO:
         string* str = new string(text);
         worker_.add(ttSendText, "", str, 0, 0);
     }
     
 	bool isConnected() { return socket_ != 0;  }
+	int getIdleCount() { return idle_count_; }
 
 	void setOnConnected(SocketEvent event) { on_connected_ = event; }
 	void setOnDisconnected(SocketEvent event) { on_disconnected_ = event; }
 	void setOnReceived(ReceivedEvent event) { on_received_ = event; }
 	void setOnError(ErrorEvent event) { on_error_ = event; }
+	void setOnRepeat(const VoidEvent& value) { on_repeat_ = value; }
 
 private:
+    int idle_count_ = 0;
 	int socket_ = 0;
 	fd_set fd_read_;
 	Scheduler worker_;
@@ -101,6 +114,7 @@ private:
 	SocketEvent on_disconnected_ = nullptr;
 	ReceivedEvent on_received_ = nullptr;
 	ErrorEvent on_error_ = nullptr;
+	VoidEvent on_repeat_ = nullptr;
 
 	void do_connect(string host, int port) {
 		struct sockaddr_in address;

@@ -42,12 +42,6 @@ public:
 		thread_->terminateAndWait();
 	}
 
-	void terminateNow()
-	{
-		stop();
-		thread_->terminateNow();
-	}
-
 	void start() {
 		started_ = true;
 	}
