@@ -44,6 +44,7 @@ public:
 			[&](int task, const string text, const void* data, int size, int tag) {
 				switch (task) {
                     case ttConnect: {
+						do_disconnect();
                         do_connect(text, size);
 					} break;
 
