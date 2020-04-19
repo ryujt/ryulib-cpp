@@ -2,15 +2,16 @@
 #define AUDIOZIP_UTILS_HPP
 
 
-#define CHANNEL 1
-#define SAMPLE_RATE  48000
-#define FRAMES_PER_BUFFER  3840
-#define BITRATE  64000
+const int CHANNEL = 1;
+const int SAMPLE_RATE = 48000;
+const int SAMPLE_SIZE = 4;
+const int FRAMES_PER_BUFFER = 3840;
+const int BITRATE = 64000;
 
 // 최대 지연 시간 80 * 8 ms
-#define MAX_DELAY_LIMIT_COUNT  8
+const int MAX_DELAY_LIMIT_COUNT = 8;
 
-#define ERROR_OPEN_ENCODER  -7
-#define ERROR_OPEN_DECODE  -8
+const int ERROR_OPEN_ENCODER = -7;
+const int ERROR_OPEN_DECODE = -8;
 
 #endif  // AUDIOZIP_UTILS_HPP
