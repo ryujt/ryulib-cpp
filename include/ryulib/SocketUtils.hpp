@@ -81,8 +81,6 @@ public:
 		if (size <= 0) return;
 
 		Packet* packet_ = (Packet*) data;
-		__android_log_print(ANDROID_LOG_INFO, "JNI", "PacketReader.write - size_: %d, size:%d, packet_size: %d", size_, size, packet_->packet_size);
-
 		char* tail = buffer_ + size_;
 		size_ = size_ + size;
 		memcpy(tail, data, size);
@@ -102,8 +100,6 @@ public:
 			memcpy(buffer_, tail, size_);
 		}
 
-        __android_log_print(ANDROID_LOG_INFO, "JNI", "PacketReader.read - size_: %d, packet_size: %d", size_, packet_->packet_size);
-
 		return (Packet*) data_;
 	}
 
@@ -113,7 +109,6 @@ public:
 		if (size_ < HEADER_SIZE) return false;
 
 		Packet* packet_ = (Packet*) buffer_;
-		__android_log_print(ANDROID_LOG_INFO, "JNI", "PacketReader.canRead - size_: %d, packet_size: %d", size_, packet_->packet_size);
 		return packet_->packet_size <= size_;
 	}
 
