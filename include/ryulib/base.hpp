@@ -68,46 +68,4 @@ private:
 	int size_ = 0;
 };
 
-#pragma pack(push, 1)
-typedef struct _Packet {
-	unsigned short packet_size;
-	char packet_type;
-	char data_start;
-
-	int getDataSize() { return packet_size - 3; }
-
-	char* getText()
-    {
-	    char* result = (char*) malloc(packet_size);
-	    memset(result, 0, packet_size);
-	    memcpy(result, &data_start, getDataSize());
-	    return result;
-    }
-} Packet;
-#pragma pack(pop)
-
-static Packet* create_packet(char packet_type, const void* data, int size)
-{
-	Packet* packet = (Packet*) malloc(size + sizeof(Packet) - 1);
-	if (packet == NULL) return nullptr;
-
-	packet->packet_type = packet_type;
-	packet->packet_size = size + sizeof(Packet) - 1;
-	if (size > 0) memcpy(&packet->data_start, data, size);
-
-	return packet;
-}
-
-static Packet* create_packet(char packet_type, string text)
-{
-    Packet* packet = (Packet*) malloc(text.size() + sizeof(Packet) - 1);
-    if (packet == NULL) return nullptr;
-
-    packet->packet_type = packet_type;
-    packet->packet_size = text.size() + sizeof(Packet) - 1;
-	if (text.size() > 0) memcpy(&packet->data_start, text.c_str(), text.size());
-
-    return packet;
-}
-
 #endif  // RYULIB_BASE_HPP

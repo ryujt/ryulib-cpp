@@ -1,7 +1,7 @@
 #ifndef RYU_TCP_CLIENT_HPP
 #define RYU_TCP_CLIENT_HPP
 
-
+#include <ryulib/SocketUtils.hpp>
 #include <ryulib/base.hpp>
 #include <ryulib/debug_tools.hpp>
 #include <ryulib/Scheduler.hpp>
@@ -15,15 +15,13 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-
 using namespace std;
-
-#define PACKET_LIMIT (64 * 1024)
 
 enum TaskType {ttConnect, ttDisconnect, ttSendData, ttSendText, ttReceive};
 
 typedef function<void()> SocketEvent;
 typedef function<void(void*, int)> ReceivedEvent;
+typedef function<void(int, string)> SocketErrorEvent;
 
 class TcpClient
 {
@@ -105,9 +103,11 @@ public:
 	void setOnError(ErrorEvent event) { on_error_ = event; }
 	void setOnRepeat(const VoidEvent& value) { on_repeat_ = value; }
 
-private:
+protected:
     int idle_count_ = 0;
 	int socket_ = 0;
+
+private:
 	fd_set fd_read_;
 	Scheduler worker_;
 
@@ -196,6 +196,5 @@ private:
 		return true;
 	}
 };
-
 
 #endif  // RYU_TCP_CLIENT_HPP
