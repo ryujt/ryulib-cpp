@@ -2,18 +2,10 @@
 #define AUDIOIO_HPP
 
 #include <portaudio.h>
+#include <ryulib/AudioZipUtils.hpp>
 #include <ryulib/base.hpp>
 #include <ryulib/ThreadQueue.hpp>
 #include <ryulib/debug_tools.hpp>
-
-#define SAMPLE_SIZE  4
-#define ERROR_NO_DEFAULT_INPUT_DEVICE  -1
-#define ERROR_OPEN_INPUT_DEVICE  -2
-#define ERROR_START_INPUT_DEVICE  -3
-
-#define ERROR_NO_DEFAULT_OUTPUT_DEVICE  -4
-#define ERROR_OPEN_OUTPUT_DEVICE  -5
-#define ERROR_START_OUTPUT_DEVICE  -6
 
 using namespace std;
 
