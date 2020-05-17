@@ -2,8 +2,6 @@
 #define	_yuvTools_H_
 
 
-#include <windows.h>
-
 #define rgbtoy(b, g, r, y) \
 		y=(unsigned char)(((int)(30*r) + (int)(59*g) + (int)(11*b))/100)
 
