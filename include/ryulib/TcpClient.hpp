@@ -27,18 +27,18 @@ class TcpClient
 {
 public:
 	TcpClient() {
-		worker_.setOnRepeat(
+		scheduler_.setOnRepeat(
 			[&]() {
 				if (do_receive()) {
                     idle_count_ = 0;
 				} else {
                     idle_count_ = idle_count_ + 5;
 					if (on_repeat_ != nullptr) on_repeat_();
-					worker_.sleep(5);
+					scheduler_.sleep(5);
 				}
 			}
 		);
-		worker_.setOnTask(
+		scheduler_.setOnTask(
 			[&](int task, const string text, const void* data, int size, int tag) {
 				switch (task) {
                     case ttConnect: {
@@ -61,21 +61,21 @@ public:
 				}
 			}
 		);
-		worker_.start();
+		scheduler_.start();
 	}
 
 	void terminate()
 	{
 		disconnect();
-		worker_.terminateAndWait();
+		scheduler_.terminateAndWait();
 	}
 
 	void connect(string host, int port) {
-		worker_.add(ttConnect, host, nullptr, port, 0);
+		scheduler_.add(ttConnect, host, nullptr, port, 0);
 	}
 
 	void disconnect() {
-		worker_.add(ttDisconnect);
+		scheduler_.add(ttDisconnect);
 	}
 
     void sendData(const void* data, int size) {
@@ -86,12 +86,12 @@ public:
         
         void *buffer = new char[PACKET_LIMIT];
         memcpy(buffer, data, size);
-        worker_.add(ttSendData, "", buffer, size, 0);
+        scheduler_.add(ttSendData, "", buffer, size, 0);
     }
     
     void sendText(const char* text) {
         string* str = new string(text);
-        worker_.add(ttSendText, "", str, 0, 0);
+        scheduler_.add(ttSendText, "", str, 0, 0);
     }
     
 	bool isConnected() { return socket_ != 0;  }
@@ -109,7 +109,7 @@ protected:
 
 private:
 	fd_set fd_read_;
-	Scheduler worker_;
+	Scheduler scheduler_;
 
 	SocketEvent on_connected_ = nullptr;
 	SocketEvent on_disconnected_ = nullptr;
