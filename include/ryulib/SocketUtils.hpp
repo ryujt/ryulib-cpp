@@ -1,6 +1,7 @@
 #ifndef RYULIB_SOCKETUTILS_HPP
 #define RYULIB_SOCKETUTILS_HPP
 
+#include <cstring>
 #include <string>
 #include <functional>
 
