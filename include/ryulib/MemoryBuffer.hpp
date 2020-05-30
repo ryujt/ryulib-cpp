@@ -41,6 +41,8 @@ public:
 
 		memcpy(data, offset_, result);
 		offset_ = offset_ + result;
+
+		return result;
 	}
 
 private:
@@ -74,15 +76,14 @@ public:
 
 	void* read(int size)
 	{
-		if (size > size_) {
-			return nullptr;
-		}
+		if (size > size_) return nullptr;
 
 		size_ = size_ - size;
 
 		int bytes_to_copy = size;
 		char* result = (char*) malloc(size);
 		char* offset = result;
+
 		while (queue_.empty() == false) {
 			Buffer* buffer = queue_.front();
 			int copied = buffer->read(offset, bytes_to_copy);
