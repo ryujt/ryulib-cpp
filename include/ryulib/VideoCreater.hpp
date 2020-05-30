@@ -24,7 +24,6 @@ extern "C" {
 #define VIDEO_BITRATE		(1024 * 1024)
 #define STREAM_FRAME_RATE	25
 #define AUDIO_FORMAT		AV_SAMPLE_FMT_S16
-#define SAMPLE_RATE			48000
 #define PIXEL_SIZE			4
 #define SAMPLE_SIZE			2
 
@@ -46,15 +45,15 @@ typedef struct OutputStream {
 
 class VideoCreater {
 public:
-	// TODO: AUDIO_FORMAT, SAMPLE_RATE, channel 생성자 파라메터로 받기
-
 	/** VideoCreater 생성자
 	@param filename 생성할 비디오 파일의 이름 (확장자 포함)
 	@param width 입력할 bitmap 화면의 넓이
 	@param height 입력할 bitmap 화면의 높이
+	@param channel 입력할 오디오의 채널 수
+	@param sample_rate 입력할 오디오의 sample rate
 	*/
-	VideoCreater(const char* filename, int width, int height)
-		: filename_(filename), width_(width), height_(height)
+	VideoCreater(const char* filename, int width, int height, int channel, int sample_rate)
+		: filename_(filename), width_(width), height_(height), channel_(channel), sample_rate_(sample_rate)
 	{
 		int ret = 0;
 
@@ -167,11 +166,20 @@ public:
 		AVCodecContext* c = audio_st.enc;
 
 		audio_buffer_.write(packet, size);
-		int data_size = audio_st.tmp_frame->nb_samples * SAMPLE_SIZE * c->channels;
+		int data_size = audio_st.tmp_frame->nb_samples * SAMPLE_SIZE * channel_;
 
 		while (true) {
 			void* data = audio_buffer_.read(data_size);
 			if (data == nullptr) break;
+
+			//char* temp = (char*) data;
+			//int count = 0;
+			//for (int i = 0; i < data_size; i++) {
+			//	if (*temp != 0) count++;
+			//	temp++;
+			//}
+			//DebugOutput::trace("writeAudioPacket: %d", count);
+
 
 			if (do_writeAudioPacket(data, data_size) == false) {
 				free(data);
@@ -198,7 +206,7 @@ public:
 		audio_st.tmp_frame->pts = audio_st.next_pts;
 		audio_st.next_pts += audio_st.tmp_frame->nb_samples;
 
-		int dst_nb_samples = av_rescale_rnd(swr_get_delay(audio_st.swr_ctx, c->sample_rate) + audio_st.tmp_frame->nb_samples, SAMPLE_RATE, c->sample_rate, AV_ROUND_UP);
+		int dst_nb_samples = av_rescale_rnd(swr_get_delay(audio_st.swr_ctx, c->sample_rate) + audio_st.tmp_frame->nb_samples, sample_rate_, c->sample_rate, AV_ROUND_UP);
 		//DebugOutput::trace("audio_st.tmp_frame->nb_samples: %d, dst_nb_samples: %d", audio_st.tmp_frame->nb_samples, dst_nb_samples);
 		//av_assert0(dst_nb_samples == audio_st.tmp_frame->nb_samples);
 
@@ -250,16 +258,6 @@ public:
 		return !isVideoTurn();
 	}
 
-	int getChannels()
-	{
-		return audio_st.enc->channels;
-	}
-
-	int getSampleRate()
-	{
-		return audio_st.enc->sample_rate;
-	}
-
 	// TODO: 테스트에서만 사용하고 지울 예정
 	bool isEOF(float duration)
 	{
@@ -274,6 +272,7 @@ public:
 private:
 	const char* filename_;
 	int width_, height_;
+	int channel_, sample_rate_;
 
 	OutputStream video_st = { 0 }, audio_st = { 0 };
 	AVOutputFormat* fmt;
@@ -497,7 +496,15 @@ private:
 			audio_st.nb_samples = c->frame_size;
 
 		audio_st.frame = alloc_audio_frame(c->sample_fmt, c->channel_layout, c->sample_rate, audio_st.nb_samples);
-		audio_st.tmp_frame = alloc_audio_frame(AUDIO_FORMAT, c->channel_layout, SAMPLE_RATE, audio_st.nb_samples);
+
+		uint64_t channel_layout = AV_CH_LAYOUT_STEREO;
+		switch (channel_)
+		{
+			case 1: channel_layout = AV_CH_LAYOUT_MONO; break;
+			case 2: channel_layout = AV_CH_LAYOUT_STEREO; break;
+			default: throw "입력 오디오의 채널 수는 1 또는 2여야 합니다.";
+		}
+		audio_st.tmp_frame = alloc_audio_frame(AUDIO_FORMAT, channel_layout, sample_rate_, audio_st.nb_samples);
 
 		ret = avcodec_parameters_from_context(audio_st.st->codecpar, c);
 		if (ret < 0) {
@@ -511,8 +518,8 @@ private:
 			return false;
 		}
 
-		av_opt_set_int(audio_st.swr_ctx, "in_channel_count", c->channels, 0);
-		av_opt_set_int(audio_st.swr_ctx, "in_sample_rate", SAMPLE_RATE, 0);
+		av_opt_set_int(audio_st.swr_ctx, "in_channel_count", channel_, 0);
+		av_opt_set_int(audio_st.swr_ctx, "in_sample_rate", sample_rate_, 0);
 		av_opt_set_sample_fmt(audio_st.swr_ctx, "in_sample_fmt", AUDIO_FORMAT, 0);
 		av_opt_set_int(audio_st.swr_ctx, "out_channel_count", c->channels, 0);
 		av_opt_set_int(audio_st.swr_ctx, "out_sample_rate", c->sample_rate, 0);
