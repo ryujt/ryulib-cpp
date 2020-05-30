@@ -172,15 +172,6 @@ public:
 			void* data = audio_buffer_.read(data_size);
 			if (data == nullptr) break;
 
-			//char* temp = (char*) data;
-			//int count = 0;
-			//for (int i = 0; i < data_size; i++) {
-			//	if (*temp != 0) count++;
-			//	temp++;
-			//}
-			//DebugOutput::trace("writeAudioPacket: %d", count);
-
-
 			if (do_writeAudioPacket(data, data_size) == false) {
 				free(data);
 				return false;
