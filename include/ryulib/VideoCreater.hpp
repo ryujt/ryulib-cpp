@@ -3,6 +3,7 @@
 
 
 #include <ryulib/debug_tools.hpp>
+#include <ryulib/MemoryBuffer.hpp>
 
 #pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib, "secur32.lib")
@@ -15,15 +16,17 @@ extern "C" {
 #include <libavutil/mathematics.h>
 #include <libavutil/timestamp.h>
 #include <libavformat/avformat.h>
+#include <libavcodec/avcodec.h>
 #include <libswscale/swscale.h>
 #include <libswresample/swresample.h>
 }
 
-#define VIDEO_BITRATE     (1024 * 1024)
-#define STREAM_FRAME_RATE 25
-#define AUDIO_FORMAT      AV_SAMPLE_FMT_S16
-#define PIXEL_SIZE        4
-#define SAMPLE_SIZE       2
+#define VIDEO_BITRATE		(1024 * 1024)
+#define STREAM_FRAME_RATE	25
+#define AUDIO_FORMAT		AV_SAMPLE_FMT_S16
+#define SAMPLE_RATE			48000
+#define PIXEL_SIZE			4
+#define SAMPLE_SIZE			2
 
 typedef struct OutputStream {
 	AVStream* st;
@@ -43,6 +46,8 @@ typedef struct OutputStream {
 
 class VideoCreater {
 public:
+	// TODO: AUDIO_FORMAT, SAMPLE_RATE, channel 생성자 파라메터로 받기
+
 	/** VideoCreater 생성자
 	@param filename 생성할 비디오 파일의 이름 (확장자 포함)
 	@param width 입력할 bitmap 화면의 넓이
@@ -157,7 +162,30 @@ public:
 		return true;
 	}
 
-	bool writeAudioPacket(void* packet)
+	bool writeAudioPacket(void* packet, int size)
+	{
+		AVCodecContext* c = audio_st.enc;
+
+		audio_buffer_.write(packet, size);
+		int data_size = audio_st.tmp_frame->nb_samples * SAMPLE_SIZE * c->channels;
+
+		while (true) {
+			void* data = audio_buffer_.read(data_size);
+			if (data == nullptr) break;
+
+			if (do_writeAudioPacket(data, data_size) == false) {
+				free(data);
+				return false;
+			}
+
+			free(data);
+		}
+
+		return true;
+	}
+
+
+	bool do_writeAudioPacket(void* data, int size)
 	{
 		AVCodecContext* c = audio_st.enc;
 		AVPacket pkt = { 0 };
@@ -166,12 +194,13 @@ public:
 
 		av_init_packet(&pkt);
 
-		memcpy(audio_st.tmp_frame->data[0], packet, audio_st.tmp_frame->nb_samples * SAMPLE_SIZE * c->channels);
+		memcpy(audio_st.tmp_frame->data[0], data, size);
 		audio_st.tmp_frame->pts = audio_st.next_pts;
 		audio_st.next_pts += audio_st.tmp_frame->nb_samples;
 
-		int dst_nb_samples = av_rescale_rnd(swr_get_delay(audio_st.swr_ctx, c->sample_rate) + audio_st.tmp_frame->nb_samples, c->sample_rate, c->sample_rate, AV_ROUND_UP);
-		av_assert0(dst_nb_samples == audio_st.tmp_frame->nb_samples);
+		int dst_nb_samples = av_rescale_rnd(swr_get_delay(audio_st.swr_ctx, c->sample_rate) + audio_st.tmp_frame->nb_samples, SAMPLE_RATE, c->sample_rate, AV_ROUND_UP);
+		//DebugOutput::trace("audio_st.tmp_frame->nb_samples: %d, dst_nb_samples: %d", audio_st.tmp_frame->nb_samples, dst_nb_samples);
+		//av_assert0(dst_nb_samples == audio_st.tmp_frame->nb_samples);
 
 		ret = av_frame_make_writable(audio_st.frame);
 		if (ret < 0) {
@@ -251,6 +280,8 @@ private:
 	AVFormatContext* oc;
 	AVCodec* audio_codec = nullptr;
 	AVCodec* video_codec = nullptr;
+
+	MemoryBuffer audio_buffer_;
 
 	AVFrame* alloc_audio_frame(enum AVSampleFormat sample_fmt, uint64_t channel_layout, int sample_rate, int nb_samples)
 	{
@@ -466,7 +497,7 @@ private:
 			audio_st.nb_samples = c->frame_size;
 
 		audio_st.frame = alloc_audio_frame(c->sample_fmt, c->channel_layout, c->sample_rate, audio_st.nb_samples);
-		audio_st.tmp_frame = alloc_audio_frame(AUDIO_FORMAT, c->channel_layout, c->sample_rate, audio_st.nb_samples);
+		audio_st.tmp_frame = alloc_audio_frame(AUDIO_FORMAT, c->channel_layout, SAMPLE_RATE, audio_st.nb_samples);
 
 		ret = avcodec_parameters_from_context(audio_st.st->codecpar, c);
 		if (ret < 0) {
@@ -481,7 +512,7 @@ private:
 		}
 
 		av_opt_set_int(audio_st.swr_ctx, "in_channel_count", c->channels, 0);
-		av_opt_set_int(audio_st.swr_ctx, "in_sample_rate", c->sample_rate, 0);
+		av_opt_set_int(audio_st.swr_ctx, "in_sample_rate", SAMPLE_RATE, 0);
 		av_opt_set_sample_fmt(audio_st.swr_ctx, "in_sample_fmt", AUDIO_FORMAT, 0);
 		av_opt_set_int(audio_st.swr_ctx, "out_channel_count", c->channels, 0);
 		av_opt_set_int(audio_st.swr_ctx, "out_sample_rate", c->sample_rate, 0);

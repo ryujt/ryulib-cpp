@@ -57,6 +57,7 @@ public:
 			free(data_);
 			data_ = nullptr;
 		}
+		size_ = 0;
 	}
 
 	void *getData() { return data_; }
