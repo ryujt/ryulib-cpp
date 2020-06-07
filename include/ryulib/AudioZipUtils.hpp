@@ -12,14 +12,6 @@ const int AUDIO_DATA_SIZE = CHANNEL * FRAMES_PER_BUFFER * SAMPLE_SIZE;
 // 최대 지연 시간 120 * 4 ms
 const int MAX_DELAY_LIMIT_COUNT = 4;
 
-const int ERROR_NO_DEFAULT_INPUT_DEVICE  = -1;
-const int ERROR_OPEN_INPUT_DEVICE        = -2;
-const int ERROR_START_INPUT_DEVICE       = -3;
-
-const int ERROR_NO_DEFAULT_OUTPUT_DEVICE = -4;
-const int ERROR_OPEN_OUTPUT_DEVICE       = -5;
-const int ERROR_START_OUTPUT_DEVICE      = -6;
-
 const int ERROR_OPEN_ENCODER             = -7;
 const int ERROR_OPEN_DECODE              = -8;
 
