@@ -2,7 +2,6 @@
 #define AUDIOIO_HPP
 
 #include <portaudio.h>
-#include <ryulib/AudioZipUtils.hpp>
 #include <ryulib/base.hpp>
 #include <ryulib/ThreadQueue.hpp>
 #include <ryulib/debug_tools.hpp>
@@ -10,6 +9,14 @@
 using namespace std;
 
 static bool is_audio_inited = false;
+
+const int ERROR_NO_DEFAULT_INPUT_DEVICE = -1;
+const int ERROR_OPEN_INPUT_DEVICE = -2;
+const int ERROR_START_INPUT_DEVICE = -3;
+
+const int ERROR_NO_DEFAULT_OUTPUT_DEVICE = -4;
+const int ERROR_OPEN_OUTPUT_DEVICE = -5;
+const int ERROR_START_OUTPUT_DEVICE = -6;
 
 class Audio {
 public:
@@ -37,10 +44,12 @@ public:
 	/** AudioInput 생성자
 	@param channels 캡쳐할 오디오의 채널 수. 1: 모노, 2: 스테레오
 	@param sampe_rate 캡쳐할 오디오의 sampling rate. 초당 캡쳐할 샘플링(오디오의 데이터) 개수
+	@param smaple_size 캡쳐할 오디오의 포멧. 2: 16bit (paInt16), 4: 32bit (paFloat32)
 	@param fpb 한 번에 처리할 프레임의 갯수
 	*/
-	AudioInput(int channels, int sampe_rate, int fpb)
-		: channels_(channels), sampe_rate_(sampe_rate), fpb_(fpb), buffer_size_(SAMPLE_SIZE * fpb * channels) 
+	AudioInput(int channels, int sampe_rate, int smaple_size, int fpb)
+		: channels_(channels), sampe_rate_(sampe_rate), smaple_size_(smaple_size), 
+		fpb_(fpb), buffer_size_(smaple_size * fpb * channels)
 	{
 	}
 
@@ -59,8 +68,13 @@ public:
 			return ERROR_NO_DEFAULT_INPUT_DEVICE;
 		}
 
+		switch (smaple_size_) {
+			case 2: inputParameters.sampleFormat = paInt16; break;
+			case 4: inputParameters.sampleFormat = paFloat32; break;
+			default: throw "smaple_size는 2(16bit)와 4(32bit)만 지정이 가능합니다.";
+		}
+
 		inputParameters.channelCount = channels_;
-		inputParameters.sampleFormat = paFloat32;
 		inputParameters.suggestedLatency = Pa_GetDeviceInfo(inputParameters.device)->defaultLowInputLatency;
 		inputParameters.hostApiSpecificStreamInfo = NULL;
 
@@ -139,6 +153,7 @@ private:
 
 	int channels_;
 	int sampe_rate_;
+	int smaple_size_;
 	int fpb_;
 	int buffer_size_;
 
@@ -156,8 +171,9 @@ public:
 	@param sampe_rate 오디오의 sampling rate.
 	@param fpb 한 번에 처리할 프레임의 갯수
 	*/
-	AudioOutput(int channels, int sampe_rate, int fpb)
-		: channels_(channels), sampe_rate_(sampe_rate), fpb_(fpb), buffer_size_(SAMPLE_SIZE * fpb * channels) 
+	AudioOutput(int channels, int sampe_rate, int smaple_size, int fpb)
+		: channels_(channels), sampe_rate_(sampe_rate), smaple_size_(smaple_size), 
+		fpb_(fpb), buffer_size_(smaple_size * fpb * channels)
 	{
 		DebugOutput::trace("AudioOutput - buffer_size_: %d \n", buffer_size_);
 
@@ -284,6 +300,7 @@ private:
 
 	int channels_;
 	int sampe_rate_;
+	int smaple_size_;
 	int fpb_;
 	int buffer_size_;
 	void *mute_;
