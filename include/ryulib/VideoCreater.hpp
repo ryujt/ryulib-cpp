@@ -25,7 +25,7 @@ extern "C" {
 #define STREAM_FRAME_RATE	25
 #define AUDIO_FORMAT		AV_SAMPLE_FMT_S16
 #define PIXEL_SIZE			4
-#define SAMPLE_SIZE			2
+#define SAMPLE_SIZE_16BIT	2
 
 typedef struct OutputStream {
 	AVStream* st;
@@ -166,7 +166,7 @@ public:
 		AVCodecContext* c = audio_st.enc;
 
 		audio_buffer_.write(packet, size);
-		int data_size = audio_st.tmp_frame->nb_samples * SAMPLE_SIZE * channel_;
+		int data_size = audio_st.tmp_frame->nb_samples * SAMPLE_SIZE_16BIT * channel_;
 
 		while (true) {
 			void* data = audio_buffer_.read(data_size);
@@ -333,7 +333,6 @@ private:
 	bool add_video_stream()
 	{
 		AVCodecContext* c;
-		int i;
 
 		video_codec = avcodec_find_encoder(fmt->video_codec);
 		if (!(video_codec)) {
