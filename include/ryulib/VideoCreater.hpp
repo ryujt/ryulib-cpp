@@ -1,7 +1,6 @@
 ﻿#ifndef VIDEO_CREATER_HPP
 #define VIDEO_CREATER_HPP
 
-
 #include <ryulib/debug_tools.hpp>
 #include <ryulib/MemoryBuffer.hpp>
 
@@ -21,11 +20,11 @@ extern "C" {
 #include <libswresample/swresample.h>
 }
 
-#define VIDEO_BITRATE		(1024 * 1024)
+#define VIDEO_BITRATE		(4096 * 1024)
 #define STREAM_FRAME_RATE	25
-#define AUDIO_FORMAT		AV_SAMPLE_FMT_S16
 #define PIXEL_SIZE			4
-#define SAMPLE_SIZE_16BIT	2
+#define AUDIO_FORMAT		AV_SAMPLE_FMT_FLT
+#define AUDIO_SAMPLE_SIZE	4
 
 typedef struct OutputStream {
 	AVStream* st;
@@ -166,7 +165,7 @@ public:
 		AVCodecContext* c = audio_st.enc;
 
 		audio_buffer_.write(packet, size);
-		int data_size = audio_st.tmp_frame->nb_samples * SAMPLE_SIZE_16BIT * channel_;
+		int data_size = audio_st.tmp_frame->nb_samples * AUDIO_SAMPLE_SIZE * channel_;
 
 		while (true) {
 			void* data = audio_buffer_.read(data_size);
@@ -532,6 +531,5 @@ private:
 		if (ost->swr_ctx != NULL) swr_free(&ost->swr_ctx);
 	}
 };
-
 
 #endif  // VIDEO_CREATER_HPP
