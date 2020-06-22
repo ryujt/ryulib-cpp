@@ -4,6 +4,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #include <shlobj_core.h>
+#include <shellapi.h>
 #endif
 
 #include <string>
