@@ -3,11 +3,11 @@
 int main(void) {
 	Audio::init();
 
-	AudioInput audio_input(2, 48000, 3840);
+	AudioInput audio_input(1, 44100, 4, 882);
 	audio_input.setOnData([](const void* obj, const void* data, int size) {
 		printf("buffer_size: %d \n", size);
 	});
-	audio_input.open();
+	audio_input.open(2);
 
 	while (audio_input.isActive()) {
 		Pa_Sleep(1000);

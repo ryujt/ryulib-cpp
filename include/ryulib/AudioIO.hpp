@@ -54,14 +54,21 @@ public:
 	}
 
 	/** 오디오 장치를 오픈
+	@param device_id 오디오를 캡쳐할 디바이스 아이디 -1은 기본 입력 장치
 	@return 에러 코드가 리턴된다. 정상처리되면 0이 리턴된다.
 	*/
-	int open() 
+	int open(int device_id = -1) 
 	{
 		PaError err = paNoError;
-		PaStreamParameters  inputParameters;
+		PaStreamParameters inputParameters;
 
-		inputParameters.device = Pa_GetDefaultInputDevice();
+		if (device_id == -1) {
+			inputParameters.device = Pa_GetDefaultInputDevice();
+		}
+		else {
+			inputParameters.device = device_id;
+		}
+
 		if (inputParameters.device == paNoDevice) {
 			DebugOutput::trace("Error: No default input device. \n");
 			if (OnError_ != nullptr) OnError_(this, ERROR_NO_DEFAULT_INPUT_DEVICE);
@@ -182,21 +189,34 @@ public:
 	}
 
 	/** 오디오 장치를 오픈
+	@param device_id 오디오를 출력할 디바이스 아이디 -1은 기본 입력 장치
 	@return 에러 코드가 리턴된다. 정상처리되면 0이 리턴된다.
 	*/
-	int open() 
+	int open(int device_id = -1)
 	{
 		PaError err = paNoError;
 		PaStreamParameters outputParameters;
 
-		outputParameters.device = Pa_GetDefaultOutputDevice();
+		if (device_id == -1) {
+			outputParameters.device = Pa_GetDefaultOutputDevice();
+		}
+		else {
+			outputParameters.device = device_id;
+		}
+
 		if (outputParameters.device == paNoDevice) {
 			DebugOutput::trace("Error: AudioOutput - paNoDevice \n");
 			if (OnError_ != nullptr) OnError_(this, ERROR_NO_DEFAULT_OUTPUT_DEVICE);
 			return ERROR_NO_DEFAULT_OUTPUT_DEVICE;
 		}
+
+		switch (smaple_size_) {
+		case 2: outputParameters.sampleFormat = paInt16; break;
+		case 4: outputParameters.sampleFormat = paFloat32; break;
+		default: throw "smaple_size는 2(16bit)와 4(32bit)만 지정이 가능합니다.";
+		}
+
 		outputParameters.channelCount = channels_;
-		outputParameters.sampleFormat = paFloat32;
 		outputParameters.suggestedLatency = Pa_GetDeviceInfo(outputParameters.device)->defaultLowOutputLatency;
 		outputParameters.hostApiSpecificStreamInfo = NULL;
 
