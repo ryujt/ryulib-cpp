@@ -5,6 +5,7 @@
 #include "windows.h"
 #endif
 
+#include <atlstr.h>
 #include <string>
 #include <algorithm>
 
@@ -27,7 +28,7 @@ static string WideCharToString(wchar_t* src)
     return result;
 }
 
-static wchar_t* StringToWideChar(string str)
+static wchar_t* StringToWideChar(const string str)
 {
     int len;
     int slength = str.length() + 1;
@@ -41,13 +42,36 @@ static wchar_t* StringToWideChar(string str)
 template<typename ... Args>
 static string format_string(const string& format, Args ... args)
 {
-	size_t size = snprintf(nullptr, 0, format.c_str(), args ...) + 1;
-	auto buffer(new char[size]);
-	snprintf(buffer.get(), size, format.c_str(), args ...);
-	return string(buffer.get(), buffer.get() + size - 1);
+    size_t size = snprintf(nullptr, 0, format.c_str(), args ...) + 1;
+    char* buffer = new char[size];
+    memset(buffer, 0, size);
+    snprintf(buffer, size, format.c_str(), args ...);
+    string result(buffer);
+    delete(buffer);
+    return result;
 }
 
-static string deleteLeft(string str, string border, bool ignore_case = false)
+static string UTF8ToANSI(const string text)
+{
+    const char* src = text.c_str();
+    int len = MultiByteToWideChar(CP_UTF8, 0, src, strlen(src) + 1, NULL, NULL);
+    BSTR bstrWide = SysAllocStringLen(NULL, len);
+
+    MultiByteToWideChar(CP_UTF8, 0, src, strlen(src) + 1, bstrWide, len);
+
+    len = WideCharToMultiByte(CP_ACP, 0, bstrWide, -1, NULL, 0, NULL, NULL);
+    char* ansi_str = new char[len];
+
+    WideCharToMultiByte(CP_ACP, 0, bstrWide, -1, ansi_str, len, NULL, NULL);
+    SysFreeString(bstrWide);
+
+    string result(ansi_str);
+    delete ansi_str;
+
+    return result;
+}
+
+static string deleteLeft(const string str, const string border, bool ignore_case = false)
 {
     string src = string(str);
     string dst = string(border);
@@ -65,7 +89,7 @@ static string deleteLeft(string str, string border, bool ignore_case = false)
     return str.substr(pos, str.length());
 }
 
-static string deleteLeftPlus(string str, string border, bool ignore_case = false)
+static string deleteLeftPlus(const string str, const string border, bool ignore_case = false)
 {
     string src = string(str);
     string dst = string(border);
@@ -83,7 +107,7 @@ static string deleteLeftPlus(string str, string border, bool ignore_case = false
     return str.substr(pos + border.length(), str.length());
 }
 
-static string deleteRight(string str, string border, bool ignore_case = false)
+static string deleteRight(const string str, const string border, bool ignore_case = false)
 {
     string src = string(str);
     string dst = string(border);
@@ -102,7 +126,7 @@ static string deleteRight(string str, string border, bool ignore_case = false)
     return str;
 }
 
-static string deleteRightPlus(string str, string border, bool ignore_case = false)
+static string deleteRightPlus(const string str, const string border, bool ignore_case = false)
 {
     string src = string(str);
     string dst = string(border);
@@ -121,7 +145,7 @@ static string deleteRightPlus(string str, string border, bool ignore_case = fals
     return str;
 }
 
-static string setLastString(string str, string last)
+static string setLastString(string str, const string last)
 {
     if (str.substr(str.length() - last.length(), last.length()) == last) {
         return str;
