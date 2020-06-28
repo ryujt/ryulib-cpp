@@ -4,10 +4,6 @@
 #include <ryulib/debug_tools.hpp>
 #include <ryulib/MemoryBuffer.hpp>
 
-#pragma comment(lib, "ws2_32.lib")
-#pragma comment(lib, "secur32.lib")
-#pragma comment(lib, "bcrypt.lib")
-
 extern "C" {
 #include <libavutil/avassert.h>
 #include <libavutil/channel_layout.h>
@@ -19,6 +15,19 @@ extern "C" {
 #include <libswscale/swscale.h>
 #include <libswresample/swresample.h>
 }
+
+#pragma comment(lib, "ws2_32")
+#pragma comment(lib, "secur32")
+#pragma comment(lib, "bcrypt")
+#pragma comment(lib, "avcodec")
+#pragma comment(lib, "avdevice")
+#pragma comment(lib, "avfilter")
+#pragma comment(lib, "avformat")
+#pragma comment(lib, "avresample")
+#pragma comment(lib, "avutil")
+#pragma comment(lib, "swresample")
+#pragma comment(lib, "swscale")
+#pragma comment(lib, "libx264")
 
 #define VIDEO_BITRATE		(4096 * 1024)
 #define STREAM_FRAME_RATE	25
