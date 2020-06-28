@@ -61,12 +61,18 @@ public:
 	}
 
 	void *getData() { return data_; }
-
 	int getSize() { return size_; }
+	void* getUserData() { return user_data_; }
+	int getTag() { return tag_; }
+
+	void setUserData(void* user_data) { user_data_ = user_data; }
+	void setTag(int tag) { tag_ = tag; }
 
 private:
 	void* data_ = nullptr;
 	int size_ = 0;
+	void* user_data_ = nullptr;
+	int tag_ = 0;
 };
 
 #endif  // RYULIB_BASE_HPP
