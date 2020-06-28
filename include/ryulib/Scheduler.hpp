@@ -98,12 +98,10 @@ private:
 				delete t;
 			}
 
-			if (started_) {
-				if (on_repeat_ != nullptr) {
-					on_repeat_();
-				} else {
-					thread_->sleep(1);
-				}
+			if (started_ && (on_repeat_ != nullptr)) {
+				on_repeat_();
+			} else {
+				thread_->sleep(1);
 			}
 		}
 	};
