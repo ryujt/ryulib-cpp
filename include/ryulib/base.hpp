@@ -8,17 +8,19 @@
 
 using namespace std;
 
+namespace ryulib {
+
 class Memory;
 
 typedef function<void()> VoidEvent;
-typedef function<void(const void*)> NotifyEvent;
-typedef function<void(const void*, const string)> StringEvent;
-typedef function<void(const void*, int code, const string)> ErrorEvent;
-typedef function<void(const void*, int)> IntegerEvent;
-typedef function<void(const void*, const Memory*)> MemoryEvent;
-typedef function<void(const void*, const void*, int)> DataEvent;
-typedef function<bool(const void*)> AskEvent;
-typedef function<void(int, const string, const void*, int, int)> TaskEvent;
+typedef function<void(void*)> NotifyEvent;
+typedef function<void(void*, string)> StringEvent;
+typedef function<void(void*, int code, const string)> ErrorEvent;
+typedef function<void(void*, int)> IntegerEvent;
+typedef function<void(void*, Memory*)> MemoryEvent;
+typedef function<void(void*, void*, int)> DataEvent;
+typedef function<bool(void*)> AskEvent;
+typedef function<void(int, string, void*, int, int)> TaskEvent;
 
 /** 메모리 할당을 받아서 포인터와 크기를 함께 묶어서 사용하는 데이터 클래스
 */
@@ -36,8 +38,7 @@ public:
 		if (size > 0) {
 			data_ = malloc(size);
 			memset(data_, 0, size);
-		}
-		else {
+		} else {
 			data_ = nullptr;
 		}
 	}
@@ -48,8 +49,7 @@ public:
 		if (size > 0) {
 			data_ = malloc(size);
 			memcpy(data_, data, size);
-		}
-		else {
+		} else {
 			data_ = nullptr;
 		}
 	}
@@ -63,7 +63,7 @@ public:
 		size_ = 0;
 	}
 
-	void *getData() { return data_; }
+	void* getData() { return data_; }
 	int getSize() { return size_; }
 	void* getUserData() { return user_data_; }
 	int getTag() { return tag_; }
@@ -84,8 +84,7 @@ class MemoryBox {
 public:
 	MemoryBox(void* data, int size, void* user_data, int tag)
 		: data_(data), size_(size), user_data_(user_data), tag_(tag)
-	{
-	}
+	{}
 private:
 	void* data_ = nullptr;
 	int size_ = 0;
@@ -93,4 +92,5 @@ private:
 	int tag_ = 0;
 };
 
+}
 #endif  // RYULIB_BASE_HPP
