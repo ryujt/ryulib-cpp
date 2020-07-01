@@ -13,14 +13,14 @@ namespace ryulib {
 class Memory;
 
 typedef function<void()> VoidEvent;
-typedef function<void(void*)> NotifyEvent;
-typedef function<void(void*, string)> StringEvent;
-typedef function<void(void*, int code, const string)> ErrorEvent;
-typedef function<void(void*, int)> IntegerEvent;
-typedef function<void(void*, Memory*)> MemoryEvent;
-typedef function<void(void*, void*, int)> DataEvent;
-typedef function<bool(void*)> AskEvent;
-typedef function<void(int, string, void*, int, int)> TaskEvent;
+typedef function<void(const void*)> NotifyEvent;
+typedef function<void(const void*, const string)> StringEvent;
+typedef function<void(const void*, int code, const string)> ErrorEvent;
+typedef function<void(const void*, int)> IntegerEvent;
+typedef function<void(const const const void*, const Memory*)> MemoryEvent;
+typedef function<void(const void*, const void*, int)> DataEvent;
+typedef function<bool(const void*)> AskEvent;
+typedef function<void(int, const string, const void*, int, int)> TaskEvent;
 
 /** 메모리 할당을 받아서 포인터와 크기를 함께 묶어서 사용하는 데이터 클래스
 */
@@ -63,12 +63,17 @@ public:
 		size_ = 0;
 	}
 
-	void* getData() { return data_; }
+	void loadMemory(const void* src, int size)
+	{
+		memcpy(data_, src, size);
+	}
+
+	const void* getData() { return data_; }
 	int getSize() { return size_; }
 	void* getUserData() { return user_data_; }
 	int getTag() { return tag_; }
 
-	void setUserData(void* user_data) { user_data_ = user_data; }
+	void setUserData(const void* user_data) { user_data_ = (void*) user_data; }
 	void setTag(int tag) { tag_ = tag; }
 
 private:
