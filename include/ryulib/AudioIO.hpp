@@ -7,6 +7,7 @@
 #include <ryulib/debug_tools.hpp>
 
 using namespace std;
+using namespace ryulib;
 
 static bool is_audio_inited = false;
 
