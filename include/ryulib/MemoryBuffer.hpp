@@ -46,9 +46,9 @@ public:
 	}
 
 private:
-	void* data_ = nullptr;
-	char* offset_ = nullptr;
-	int size_ = 0;
+	void* data_;
+	char* offset_;
+	int size_;
 };
 
 class MemoryBuffer {
@@ -68,7 +68,7 @@ public:
 		size_ = 0;
 	}
 
-	void write(void* data, int size)
+	void write(const void* data, int size)
 	{
 		queue_.push(new Buffer(data, size));
 		size_ = size_ + size;
@@ -81,8 +81,8 @@ public:
 		size_ = size_ - size;
 
 		int bytes_to_copy = size;
-		char* result = (char*) malloc(size);
-		char* offset = result;
+		void* result = malloc(size);
+		char* offset = (char*) result;
 
 		while (queue_.empty() == false) {
 			Buffer* buffer = queue_.front();
