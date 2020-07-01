@@ -68,7 +68,7 @@ public:
 		memcpy(data_, src, size);
 	}
 
-	const void* getData() { return data_; }
+	void* getData() { return data_; }
 	int getSize() { return size_; }
 	void* getUserData() { return user_data_; }
 	int getTag() { return tag_; }
