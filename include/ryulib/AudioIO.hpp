@@ -106,7 +106,10 @@ public:
 	/** 오디오 장치를 닫는다. 오디오 캡쳐가 중단된다. */
 	void close() 
 	{
-		Pa_CloseStream(stream_);
+		if (stream_ != nullptr) {
+			Pa_CloseStream(stream_);
+			stream_ = nullptr;
+		}
 	}
 
 	/** 오디오가 캡쳐되는 중인지 알려준다.
@@ -167,7 +170,7 @@ private:
 
 	float volume_ = 1.0;
 
-	PaStream* stream_;
+	PaStream* stream_ = nullptr;
 	IntegerEvent OnError_ = nullptr;
 	DataEvent on_data_ = nullptr;
 };
