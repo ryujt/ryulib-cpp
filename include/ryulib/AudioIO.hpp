@@ -1,6 +1,7 @@
 ﻿#ifndef AUDIOIO_HPP
 #define AUDIOIO_HPP
 
+#include <math.h>
 #include <portaudio.h>
 #include <ryulib/base.hpp>
 #include <ryulib/ThreadQueue.hpp>
@@ -152,10 +153,12 @@ private:
 	{
 		AudioInput *audio_input = (AudioInput *) userData;
 
-		float* data = (float*) inputBuffer;
-		for (int i = 0; i < audio_input->fpb_; i++) {
-			*data = (*data) * audio_input->volume_;
-			data++;
+		if (abs(audio_input->volume_ - 1.0) > 0.0001) {
+			float* data = (float*) inputBuffer;
+			for (int i = 0; i < audio_input->fpb_; i++) {
+				*data = (*data) * audio_input->volume_;
+				data++;
+			}
 		}
 
 		if (audio_input->on_data_ != nullptr) audio_input->on_data_(audio_input, inputBuffer, audio_input->buffer_size_);
@@ -311,10 +314,12 @@ private:
 			memcpy(outputBuffer, memory->getData(), memory->getSize());
 			delete memory;
 
-			float* data = (float*) outputBuffer;
-			for (int i = 0; i < audio_output->fpb_; i++) {
-				*data = (*data) * audio_output->volume_;
-				data++;
+			if (abs(audio_output->volume_ - 1.0) > 0.0001) {
+				float* data = (float*) outputBuffer;
+				for (int i = 0; i < audio_output->fpb_; i++) {
+					*data = (*data) * audio_output->volume_;
+					data++;
+				}
 			}
 		} else {
 			memcpy(outputBuffer, audio_output->mute_, audio_output->buffer_size_);
