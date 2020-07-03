@@ -45,13 +45,15 @@ public:
 
 	Memory(const void* data, int size)
 	{
-		size_ = size;
-		if (size > 0) {
-			data_ = malloc(size);
-			memcpy(data_, data, size);
-		} else {
+		if ((size <= 0) || (data == nullptr)) {
 			data_ = nullptr;
+			size_ = 0;
+			return;
 		}
+
+		size_ = size;
+		data_ = malloc(size);
+		memcpy(data_, data, size);
 	}
 
 	~Memory()
