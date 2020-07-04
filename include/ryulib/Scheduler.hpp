@@ -7,6 +7,7 @@
 #include <ryulib/ThreadQueue.hpp>
 
 using namespace std;
+using namespace ryulib;
 
 class TaskOfScheduler
 {
