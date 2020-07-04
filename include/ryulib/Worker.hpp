@@ -1,12 +1,12 @@
 #ifndef RYU_WORKER_HPP
 #define RYU_WORKER_HPP
 
-
 #include <ryulib/base.hpp>
 #include <ryulib/SimpleThread.hpp>
 #include <ryulib/SuspensionQueue.hpp>
 
 using namespace std;
+using namespace ryulib;
 
 const int TASK_STRING = -1;
 
@@ -44,6 +44,11 @@ public:
 		thread_->terminateNow();
 	}
 
+	void terminateAndWait()
+	{
+		thread_->terminateAndWait();
+	}
+
 	void add(int task) {
 		TaskOfWorker* t = new TaskOfWorker(task, "", nullptr, 0, 0);
 		queue_.push(t);
@@ -71,6 +76,9 @@ public:
 private:
 	bool started_ = false;
 	SuspensionQueue<TaskOfWorker*> queue_;
+
+	TaskEvent on_task_ = nullptr;
+
 	SimpleThread* thread_;
 	SimpleThreadEvent on_thread_execute = [&](SimpleThread * simpleThread) {
 		while (simpleThread->isTerminated() == false) {
@@ -82,9 +90,6 @@ private:
 			delete t;
 		}
 	};
-
-	TaskEvent on_task_ = nullptr;
 };
-
 
 #endif  // RYU_WORKER_HPP
