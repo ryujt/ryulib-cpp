@@ -5,6 +5,7 @@
 #include "windows.h"
 #endif
 
+#include <stdlib.h>
 #include <atlstr.h>
 #include <string>
 #include <algorithm>
@@ -51,7 +52,7 @@ static string format_string(const string& format, Args ... args)
     return result;
 }
 
-static string UTF8ToANSI(const string text)
+static string UTF8ToAnsi(const string text)
 {
     const char* src = text.c_str();
     int len = MultiByteToWideChar(CP_UTF8, 0, src, strlen(src) + 1, NULL, NULL);
@@ -67,6 +68,26 @@ static string UTF8ToANSI(const string text)
 
     string result(ansi_str);
     delete ansi_str;
+
+    return result;
+}
+
+static string AnsiToUTF8(const string text)
+{
+    const char* src = text.c_str();
+    int len = MultiByteToWideChar(CP_ACP, 0, src, strlen(src) + 1, NULL, NULL);
+    BSTR bstrWide = SysAllocStringLen(NULL, len);
+
+    MultiByteToWideChar(CP_ACP, 0, src, strlen(src) + 1, bstrWide, len);
+
+    len = WideCharToMultiByte(CP_UTF8, 0, bstrWide, -1, NULL, 0, NULL, NULL);
+    char* utf_str = new char[len];
+
+    WideCharToMultiByte(CP_UTF8, 0, bstrWide, -1, utf_str, len, NULL, NULL);
+    SysFreeString(bstrWide);
+
+    string result(utf_str);
+    delete utf_str;
 
     return result;
 }
@@ -154,5 +175,17 @@ static string setLastString(string str, const string last)
     }
 }
 
+static string getRandomString(int len)
+{ 
+    static const char alphanum[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"; 
+
+    srand(time(NULL));
+    char* temp = new char[len+1];
+    for (int i = 0; i < len; ++i) { 
+        temp[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
+    } 
+    temp[len] = 0;
+    return string(temp);
+}
 
 #endif // _RYULIB_STRG_H_ 
