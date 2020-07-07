@@ -74,15 +74,18 @@ public:
 	int getSize() { return size_; }
 	void* getUserData() { return user_data_; }
 	int getTag() { return tag_; }
+	string getText() { return text_; }
 
 	void setUserData(const void* user_data) { user_data_ = (void*) user_data; }
 	void setTag(int tag) { tag_ = tag; }
+	void setText(string text) { text_ = text; }
 
 private:
 	void* data_ = nullptr;
 	int size_ = 0;
 	void* user_data_ = nullptr;
 	int tag_ = 0;
+	string text_;
 };
 
 /** 포인터와 기타 정보를 함께 묶어서 사용하는 데이터 클래스
