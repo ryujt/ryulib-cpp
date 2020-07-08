@@ -17,7 +17,7 @@ typedef function<void(const void*)> NotifyEvent;
 typedef function<void(const void*, const string)> StringEvent;
 typedef function<void(const void*, int code, const string)> ErrorEvent;
 typedef function<void(const void*, int)> IntegerEvent;
-typedef function<void(const const const void*, const Memory*)> MemoryEvent;
+typedef function<void(const const const void*, Memory*)> MemoryEvent;
 typedef function<void(const void*, const void*, int)> DataEvent;
 typedef function<bool(const void*)> AskEvent;
 typedef function<void(int, const string, const void*, int, int)> TaskEvent;
