@@ -53,12 +53,15 @@ public:
 
     void send(const void* data, int size)
     {
-        if (pipe_ != INVALID_HANDLE_VALUE) worker_.add(TASK_SEND, new Memory(data, size), 0, 0);
+        if (is_connected_) worker_.add(TASK_SEND, new Memory(data, size), 0, 0);
     }
+
+    bool isConnected() { return is_connected_; }
 
 private:
     HANDLE pipe_ = INVALID_HANDLE_VALUE;
     Worker worker_;
+    bool is_connected_ = false;
 
     void do_open(HANDLE pipe)
     {
@@ -68,10 +71,14 @@ private:
             pipe_ = INVALID_HANDLE_VALUE;
             return;
         }
+
+        is_connected_ = true;
     }
 
     void do_close()
     {
+        is_connected_ = false;
+
         if (pipe_ == INVALID_HANDLE_VALUE) return;
 
         FlushFileBuffers(pipe_);
