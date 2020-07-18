@@ -6,7 +6,7 @@ int main()
 {
     MemoryBuffer memoryBuffer;
 
-    int buffer_size = 125;
+    int buffer_size = 123;
     void *buffer = malloc(buffer_size);
 
     srand(time(0));
