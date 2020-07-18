@@ -10,6 +10,7 @@
 #include <ryulib/debug_tools.hpp>
 
 using namespace std;
+using namespace ryulib;
 
 class AudioDecoder {
 public:
@@ -37,6 +38,13 @@ public:
 
 		Memory* memory = new Memory(data, size);
 		queue_->push(memory);
+	}
+
+	void execute(const void* data, int size)
+	{
+		char buffer[FRAMES_PER_BUFFER * SAMPLE_SIZE * CHANNEL];
+		int size_out = opus_decode_float(opus_, (unsigned char*) data, size, (float*) buffer, sizeof(buffer), 0) * SAMPLE_SIZE;
+		if (OnDecode_ != nullptr) OnDecode_(this, buffer, size_out);
 	}
 
 	void setOnError(IntegerEvent event) { OnError_ = event; }
