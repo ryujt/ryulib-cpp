@@ -15,9 +15,7 @@ jobs:
 
             - name: dir
               run: dir "C:\"
-
             - name: dir
               run: dir "D:\"
-
             - name: dir
               run: dir "D:\a\"
