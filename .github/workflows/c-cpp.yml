@@ -12,7 +12,22 @@ jobs:
 
         steps:
             - uses: actions/checkout@v2
+
+            - name: Install vcpkg
+              uses: lukka/run-vcpkg@v2
+              with:
+                  vcpkgDirectory: "${{ github.workspace }}/vcpkg"
+                  vcpkgArguments: "@${{ github.workspace }}/vcpkg.txt"
+                  appendedCacheKey: ${{ hashFiles(env.vcpkgResponseFile) }}
+
             - name: vcpkg
-              run: C:\vcpkg\vcpkg install boost
+              run: C:\vcpkg\vcpkg install curl
+
             - name: dir
               run: dir "C:\"
+
+            - name: Upload vcpkg installed
+              uses: actions/upload-artifact@v1.0.0
+              with:
+                  name: vcpkg
+                  path: vcpkg/installed/${{ env.RUNVCPKG_VCPKG_TRIPLET_OUT }}
