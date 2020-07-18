@@ -12,5 +12,7 @@ jobs:
 
         steps:
             - uses: actions/checkout@v2
+            - name: vcpkg
+              run: C:\vcpkg\vcpkg install boost
             - name: dir
               run: dir "C:\"
