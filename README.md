@@ -1,15 +1,7 @@
 # RyuLib for C++ 설치
 
-## 소스 내려받기
-
-제가 자주 사용하는 라이브러리를 모아둔 저장소입니다.
-아래의 저장소에서 소스를 내려 받고 Visual Studio에서 "Include Directories"에 등록해서 사용합니다.
-
-[https://github.com/ryujt/ryulib-cpp](https://github.com/ryujt/ryulib-cpp)
-
-```
-C:\..> git clone https://github.com/ryujt/ryulib-cpp.git
-```
+* 제가 자주 사용하는 라이브러리를 모아둔 저장소입니다.
+* 제가 직접 만든 것도 있지만, 자주 사용하는 공개된 소스들을 가져와서 정리한 것들도 있습니다.
 
 ## Include Directories 설정
 
