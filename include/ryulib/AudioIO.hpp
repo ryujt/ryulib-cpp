@@ -83,8 +83,15 @@ public:
 			default: throw "smaple_size는 2(16bit)와 4(32bit)만 지정이 가능합니다.";
 		}
 
+		const PaDeviceInfo* info = Pa_GetDeviceInfo(inputParameters.device);
+		if (info == nullptr) {
+			DebugOutput::trace("Error: AudioInput- can't find audio device.\n");
+			if (OnError_ != nullptr) OnError_(this, ERROR_OPEN_INPUT_DEVICE);
+			return ERROR_OPEN_INPUT_DEVICE;
+		}
+
 		inputParameters.channelCount = channels_;
-		inputParameters.suggestedLatency = Pa_GetDeviceInfo(inputParameters.device)->defaultLowInputLatency;
+		inputParameters.suggestedLatency = info->defaultLowInputLatency;
 		inputParameters.hostApiSpecificStreamInfo = NULL;
 
 		err = Pa_OpenStream(&stream_, &inputParameters, NULL, sampe_rate_, fpb_, paClipOff, recordCallback, this);
