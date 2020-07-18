@@ -12,7 +12,9 @@ jobs:
 
         steps:
             - uses: actions/checkout@v2
+
             - name: dir
               run: dir "D:\"
+
             - name: dir
               run: dir "D:\a\"
