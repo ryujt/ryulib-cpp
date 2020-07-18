@@ -12,5 +12,5 @@ jobs:
 
         steps:
             - uses: actions/checkout@v2
-            - name: cl
-              run: cl
+            - name: dir
+              run: dir "C:\Program Files (x86)"
