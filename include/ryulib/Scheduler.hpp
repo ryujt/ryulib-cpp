@@ -92,11 +92,13 @@ private:
 	SimpleThreadEvent on_thread_execute = [&](SimpleThread * simpleThread) {
 		while (simpleThread->isTerminated() == false) {
 			TaskOfScheduler* t = queue_.pop();
-			if (t != NULL) {
+			while (t != NULL) {
 				if (on_task_ != nullptr) {
 					on_task_(t->task, t->text, t->data, t->size, t->tag);
 				}
 				delete t;
+
+				t = queue_.pop();
 			}
 
 			if (started_ && (on_repeat_ != nullptr)) {
