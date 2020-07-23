@@ -2,11 +2,11 @@
 #define	_RYULIB_STRG_H_
 
 #ifdef _WIN32
-#include "windows.h"
+#include <windows.h>
+#include <atlstr.h>
 #endif
 
 #include <stdlib.h>
-#include <atlstr.h>
 #include <string>
 #include <algorithm>
 
@@ -36,19 +36,6 @@ static wchar_t* StringToWideChar(const string str)
     len = MultiByteToWideChar(CP_ACP, 0, str.c_str(), slength, 0, 0);
     wchar_t* result = new wchar_t[len];
     MultiByteToWideChar(CP_ACP, 0, str.c_str(), slength, result, len);
-    return result;
-}
-#endif
-
-template<typename ... Args>
-static string format_string(const string& format, Args ... args)
-{
-    size_t size = snprintf(nullptr, 0, format.c_str(), args ...) + 1;
-    char* buffer = new char[size];
-    memset(buffer, 0, size);
-    snprintf(buffer, size, format.c_str(), args ...);
-    string result(buffer);
-    delete(buffer);
     return result;
 }
 
@@ -89,6 +76,19 @@ static string AnsiToUTF8(const string text)
     string result(utf_str);
     delete utf_str;
 
+    return result;
+}
+#endif
+
+template<typename ... Args>
+static string format_string(const string& format, Args ... args)
+{
+    size_t size = snprintf(nullptr, 0, format.c_str(), args ...) + 1;
+    char* buffer = new char[size];
+    memset(buffer, 0, size);
+    snprintf(buffer, size, format.c_str(), args ...);
+    string result(buffer);
+    delete(buffer);
     return result;
 }
 
