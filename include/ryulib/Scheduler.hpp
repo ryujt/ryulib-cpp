@@ -37,6 +37,17 @@ public:
 		stop();
 	}
 
+	void terminate()
+	{
+		thread_->terminate();
+	}
+
+	void terminateNow()
+	{
+		thread_->terminateNow();
+		if (on_terminated_ != nullptr) on_terminated_(this);
+	}
+
 	void terminateAndWait()
 	{
 		stop();
@@ -84,11 +95,17 @@ public:
 
 	void setOnTask(const TaskEvent& value) { on_task_ = value; }
 	void setOnRepeat(const VoidEvent& value) { on_repeat_ = value; }
+	void setOnTerminated(const NotifyEvent& event) { on_terminated_ = event; }
 
 private:
 	bool started_ = false;
 	ThreadQueue<TaskOfScheduler*> queue_;
 	SimpleThread* thread_;
+
+	TaskEvent on_task_ = nullptr;
+	VoidEvent on_repeat_ = nullptr;
+	NotifyEvent on_terminated_ = nullptr;
+
 	SimpleThreadEvent on_thread_execute = [&](SimpleThread * simpleThread) {
 		while (simpleThread->isTerminated() == false) {
 			TaskOfScheduler* t = queue_.pop();
@@ -107,10 +124,9 @@ private:
 				thread_->sleep(1);
 			}
 		}
-	};
 
-	TaskEvent on_task_ = nullptr;
-	VoidEvent on_repeat_ = nullptr;
+		if (on_terminated_ != nullptr) on_terminated_(this);
+	};
 };
 
 
