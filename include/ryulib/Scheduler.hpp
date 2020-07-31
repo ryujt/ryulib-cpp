@@ -29,11 +29,13 @@ public:
 
 class Scheduler {
 public:
-	Scheduler() {
+	Scheduler()
+	{
 		thread_ = new SimpleThread(on_thread_execute);
 	}
 
-	~Scheduler() {
+	~Scheduler() 
+	{
 		stop();
 	}
 
@@ -106,7 +108,7 @@ private:
 	VoidEvent on_repeat_ = nullptr;
 	NotifyEvent on_terminated_ = nullptr;
 
-	SimpleThreadEvent on_thread_execute = [&](SimpleThread * simpleThread) {
+	SimpleThreadEvent on_thread_execute = [&](SimpleThread* simpleThread) {
 		while (simpleThread->isTerminated() == false) {
 			TaskOfScheduler* t = queue_.pop();
 			while (t != NULL) {
