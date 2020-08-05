@@ -37,13 +37,14 @@ public:
 	/** 
 	지정된 크기의 메모리를 할당 받은 포인터를 갖는 객체를 생성한다.
 	@param size 할당 받을 메모리의 크기
+	@param fill_zero 할당 받은 공간 메모리를 0으로 초기화 할 것인가?
 	*/
-	Memory(int size)
+	Memory(int size, bool fill_zero = true)
 	{
 		size_ = size;
 		if (size > 0) {
 			data_ = malloc(size);
-			memset(data_, 0, size);
+			if (fill_zero) memset(data_, 0, size);
 		} else {
 			data_ = nullptr;
 		}
