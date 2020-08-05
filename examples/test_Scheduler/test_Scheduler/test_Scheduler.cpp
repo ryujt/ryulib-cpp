@@ -18,8 +18,8 @@ public:
 int main()
 {
 	Scheduler scheduler;
-	scheduler.setOnTask([](int task_type, void* data, int size, int tag) {
-		switch (task_type) {
+	scheduler.setOnTask([](int task, const string text, const void* data, int size, int tag) {
+		switch (task) {
 			case TASK_CONNECT: {
 				Address* address = (Address*) data;
 				printf("Connect to %s:%d \n", address->ip_.c_str(), address->port_);
@@ -44,7 +44,7 @@ int main()
 		printf("Command: ");
 		getline(cin, line);
 
-		if (line == "c") scheduler.add(TASK_CONNECT, new Address("127.0.0.1", 1234), 0, 0);
+		if (line == "c") scheduler.add(TASK_CONNECT, "", new Address("127.0.0.1", 1234), 0, 0);
 		if (line == "d") scheduler.add(TASK_DISCONNECT);
 	}
 }

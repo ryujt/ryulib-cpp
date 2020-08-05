@@ -5,7 +5,7 @@
 int main()
 {
 	Worker worker;
-	worker.setOnString([](string text) {
+	worker.setOnTask([](int tast, const string text, const void* data, int size, int tag) {
 		printf("OnString: %s \n", text.c_str());
 	});
 
