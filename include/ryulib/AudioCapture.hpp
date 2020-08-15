@@ -1,7 +1,7 @@
 #pragma once
 
-#include <WASAPI/SystemAudioCapture.hpp>
-#include <WASAPI/AudioCapture.hpp>
+#include <ryulib/SystemAudioCapture.hpp>
+#include <ryulib/AudioCapture.hpp>
 #include <ryulib/base.hpp>
 #include <ryulib/debug_tools.hpp>
 #include <ryulib/AudioIO.hpp>
@@ -14,21 +14,24 @@ typedef struct AudioCaptureOption {
 	int sample_rate = 44100;
 	int sample_size = 4;
 	int frames = 1024;
-	int get_frame_size() { return channels * sample_size * frames;  }
+	int get_frame_size()
+	{
+		return channels * sample_size * frames;
+	}
 };
 
 class AudioCapture {
 public:
 	AudioCapture()
 	{
-		Audio::init();
+
 	}
 
 	~AudioCapture()
 	{
 		if (mic_ != nullptr) delete mic_;
 		if (silent_audio_ != nullptr) delete silent_audio_;
-		if (audio_data_ != nullptr) delete audio_data_;		
+		if (audio_data_ != nullptr) delete audio_data_;
 	}
 
 	bool start(AudioCaptureOption option)
@@ -70,23 +73,55 @@ public:
 		mic_ = nullptr;
 	}
 
-	float getMicVolume() { return volume_mic_; }
-	float getSystemVolume() { return volume_system_; }
+	bool isMicMuted()
+	{
+		return is_mic_muted_;
+	}
+	bool isSystemMuted()
+	{
+		return is_system_muted_;
+	}
 
-	void setMicMute(bool value) { is_mic_muted_ = value; }
-	void setSystemMute(bool value) { is_mic_muted_ = value; }
+	float getMicVolume()
+	{
+		return volume_mic_;
+	}
+	float getSystemVolume()
+	{
+		return volume_system_;
+	}
 
-	void setMicVolume(float value) { volume_mic_ = value; }
-	void setSystemVolume(float value) { volume_system_ = value; }
+	void setMicMuted(bool value)
+	{
+		is_mic_muted_ = value;
+	}
+	void setSystemMuted(bool value)
+	{
+		is_system_muted_ = value;
+	}
 
-	void setOnData(DataEvent event) { on_data_ = event; }
-	void setOnError(IntegerEvent event) { on_error_ = event; }
+	void setMicVolume(float value)
+	{
+		volume_mic_ = value;
+	}
+	void setSystemVolume(float value)
+	{
+		volume_system_ = value;
+	}
+
+	void setOnData(DataEvent event)
+	{
+		on_data_ = event;
+	}
+	void setOnError(IntegerEvent event)
+	{
+		on_error_ = event;
+	}
 
 private:
 	AudioInput* mic_ = nullptr;
 	SystemAudioCapture system_audio_;
 
-	// 충분한 크기의 묵음 처리용 데이터
 	Memory* silent_audio_ = nullptr;
 	Memory* audio_data_ = nullptr;
 
@@ -110,13 +145,10 @@ private:
 		void* mic_audio = (void*) buffer;
 
 		Memory* system_audio = system_audio_.getAudioData();
-		if (option_.use_system_audio == true) {
-			if (is_system_muted_ || (system_audio == nullptr)) {
-				system_audio = silent_audio_;
-			}
-		} else {
-			system_audio = silent_audio_;
-		}
+		 if (is_system_muted_ || (option_.use_system_audio == false) || (system_audio == nullptr)) {
+		 	if (system_audio != nullptr) delete system_audio;
+		 	system_audio = silent_audio_;
+		 }
 
 		if (is_mic_muted_) {
 			mic_audio = silent_audio_->getData();
@@ -124,8 +156,8 @@ private:
 
 		float* mic = (float*) mic_audio;
 		float* system = (float*) system_audio->getData();
-		float* dst = (float*) audio_data_->getData();
-		for (int i = 0; i < (buffer_size / sizeof(float)); i++) {
+		float* dst = (float *) audio_data_->getData();
+		for (int i = 0; i < buffer_size / sizeof(float); i++) {
 			*dst = *mic * volume_mic_ + *system * volume_system_;
 			mic++;
 			system++;

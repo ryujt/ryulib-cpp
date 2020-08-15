@@ -1,7 +1,7 @@
 #pragma once
 
-#include <WASAPI/SystemAudio.hpp>
-#include <ffmpeg/AudioResampling.hpp>
+#include <ryulib/SystemAudio.hpp>
+#include <ryulib/AudioResampling.hpp>
 #include <ryulib/MemoryBuffer.hpp>
 #include <ryulib/ThreadQueue.hpp>
 #include <ryulib/SimpleThread.hpp>
