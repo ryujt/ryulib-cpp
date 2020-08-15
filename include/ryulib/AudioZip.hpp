@@ -46,6 +46,7 @@ public:
 	bool start(int device_id = -1)
 	{
 		AudioCaptureOption option;
+		option.mic_device_id = device_id;
 		option.sample_rate = SAMPLE_RATE;
 		option.frames = FRAMES_PER_BUFFER;
 		return audio_capture_->start(option);

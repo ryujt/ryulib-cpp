@@ -82,9 +82,9 @@ extern "C" __declspec(dllexport) AudioZipHandle* createAudioZip(void* context, C
 	return new AudioZipHandle(context, on_data, on_error);
 }
 
-extern "C" __declspec(dllexport) void startAudioZip(AudioZipHandle* handle)
+extern "C" __declspec(dllexport) bool startAudioZip(AudioZipHandle* handle, int device_id)
 {
-	handle->object->start();
+	return handle->object->start(device_id);
 }
 
 extern "C" __declspec(dllexport) void stopAudioZip(AudioZipHandle* handle)
@@ -92,14 +92,44 @@ extern "C" __declspec(dllexport) void stopAudioZip(AudioZipHandle* handle)
 	handle->object->stop();
 }
 
-extern "C" __declspec(dllexport) float getMicVolume(AudioZipHandle* handle)
+extern "C" __declspec(dllexport) bool isMicMuted(AudioZipHandle * handle)
 {
-	return handle->object->getVolume();
+	return handle->object->isMicMuted();
 }
 
-extern "C" __declspec(dllexport) void setMicVolume(AudioZipHandle* handle, float volume)
+extern "C" __declspec(dllexport) bool isSystemMuted(AudioZipHandle * handle)
 {
-	handle->object->setVolume(volume);
+	return handle->object->isSystemMuted();
+}
+
+extern "C" __declspec(dllexport) float getMicVolume(AudioZipHandle * handle)
+{
+	return handle->object->getMicVolume();
+}
+
+extern "C" __declspec(dllexport) float getSystemVolume(AudioZipHandle * handle)
+{
+	return handle->object->getSystemVolume();
+}
+
+extern "C" __declspec(dllexport) void setMicMuted(AudioZipHandle * handle, bool value)
+{
+	handle->object->setMicMuted(value);
+}
+
+extern "C" __declspec(dllexport) void setSystemMuted(AudioZipHandle * handle, bool value)
+{
+	handle->object->setSystemMuted(value);
+}
+
+extern "C" __declspec(dllexport) void setMicVolume(AudioZipHandle * handle, float volume)
+{
+	handle->object->setMicVolume(volume);
+}
+
+extern "C" __declspec(dllexport) void setSystemVolume(AudioZipHandle * handle, float volume)
+{
+	handle->object->setSystemVolume(volume);
 }
 
 extern "C" __declspec(dllexport) void releaseAudioZip(AudioZipHandle* handle)

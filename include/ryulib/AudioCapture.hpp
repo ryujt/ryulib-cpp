@@ -60,9 +60,6 @@ public:
 
 	void stop()
 	{
-		on_data_ = nullptr;
-		on_error_ = nullptr;
-
 		system_audio_.stop();
 
 		if (mic_ == nullptr) return;

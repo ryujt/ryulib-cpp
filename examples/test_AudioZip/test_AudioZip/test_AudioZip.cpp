@@ -1,5 +1,9 @@
+#include <string>
+#include <iostream>
 #include <ryulib/AudioZip.hpp>
 #include <ryulib/AudioUnZip.hpp>
+
+using namespace std;
 
 int main(void) {
 	Audio::init();
@@ -17,9 +21,12 @@ int main(void) {
 		unzip.play(data, size);
 	});
 
-	zip.start();
-
 	while (true) {
-		Pa_Sleep(1000);
+		printf("(s)tart, s(t)op: ");
+		string line;
+		getline(cin, line);
+
+		if (line == "s") zip.start();
+		if (line == "t") zip.stop();
 	}
 }
