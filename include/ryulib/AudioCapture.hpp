@@ -1,15 +1,14 @@
 #pragma once
 
+#include <atomic>
 #include <ryulib/SystemAudioCapture.hpp>
-#include <ryulib/AudioCapture.hpp>
 #include <ryulib/base.hpp>
 #include <ryulib/debug_tools.hpp>
 #include <ryulib/AudioIO.hpp>
 #include <ryulib/ThreadQueue.hpp>
 
 typedef struct AudioCaptureOption {
-	int  mic_device_id = -1;
-	bool use_system_audio = false;
+	int mic_device_id = -1;
 	int channels = 1;
 	int sample_rate = 44100;
 	int sample_size = 4;
@@ -128,9 +127,10 @@ private:
 	AudioCaptureOption option_;
 
 	bool is_mic_muted_ = false;
-	bool is_system_muted_ = false;
-	float volume_mic_ = 1.0;
-	float volume_system_ = 1.0;
+	bool is_system_muted_ = true;
+
+	atomic<float> volume_mic_ = 1.0;
+	atomic<float> volume_system_ = 1.0;
 
 	DataEvent on_data_ = nullptr;
 	IntegerEvent on_error_ = nullptr;
@@ -145,7 +145,7 @@ private:
 		void* mic_audio = (void*) buffer;
 
 		Memory* system_audio = system_audio_.getAudioData();
-		 if (is_system_muted_ || (option_.use_system_audio == false) || (system_audio == nullptr)) {
+		 if (is_system_muted_ || (system_audio == nullptr)) {
 		 	if (system_audio != nullptr) delete system_audio;
 		 	system_audio = silent_audio_;
 		 }
