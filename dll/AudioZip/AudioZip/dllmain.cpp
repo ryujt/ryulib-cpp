@@ -28,11 +28,16 @@ class AudioZipHandle {
 private:
 	void* context_;
 
-	CALLBACK_DATA callback_on_data_;
+	CALLBACK_DATA callback_on_source_;
+	CALLBACK_DATA callback_on_encode_;
 	CALLBACK_ERROR callback_on_error_;
 
-	DataEvent on_data_ = [&](const void* obj, const void* data, int size) {
-		callback_on_data_(context_, data, size);
+	DataEvent on_source_ = [&](const void* obj, const void* data, int size) {
+		callback_on_source_(context_, data, size);
+	};
+
+	DataEvent on_encode_ = [&](const void* obj, const void* data, int size) {
+		callback_on_encode_(context_, data, size);
 	};
 
 	IntegerEvent on_error_ = [&](const void* obj, int error_code) {
@@ -42,11 +47,12 @@ private:
 public:
 	AudioZip* object;
 
-	AudioZipHandle(void* context, CALLBACK_DATA on_data, CALLBACK_ERROR on_error)
-		: context_(context), callback_on_data_(on_data), callback_on_error_(on_error)
+	AudioZipHandle(void* context, CALLBACK_DATA on_source, CALLBACK_DATA on_encode, CALLBACK_ERROR on_error)
+		: context_(context), callback_on_source_(on_source), callback_on_encode_(on_encode), callback_on_error_(on_error)
 	{
 		object = new AudioZip(CHANNEL, SAMPLE_RATE);
-		object->setOnEncode(on_data_);
+		object->setOnSource(on_source_);
+		object->setOnEncode(on_encode_);
 		object->setOnError(on_error_);
 	}
 };
@@ -77,9 +83,9 @@ extern "C" __declspec(dllexport) void initAudioZip()
 	Audio::init();
 }
 
-extern "C" __declspec(dllexport) AudioZipHandle* createAudioZip(void* context, CALLBACK_DATA on_data, CALLBACK_ERROR on_error)
+extern "C" __declspec(dllexport) AudioZipHandle* createAudioZip(void* context, CALLBACK_DATA on_source, CALLBACK_DATA on_encode, CALLBACK_ERROR on_error)
 {
-	return new AudioZipHandle(context, on_data, on_error);
+	return new AudioZipHandle(context, on_source, on_encode, on_error);
 }
 
 extern "C" __declspec(dllexport) bool startAudioZip(AudioZipHandle* handle, int device_id)

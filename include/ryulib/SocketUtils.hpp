@@ -18,7 +18,7 @@ using namespace std;
 #pragma pack(push, 1)
 typedef struct _Packet {
 	unsigned short packet_size;
-	char packet_type;
+	unsigned char packet_type;
 	char data_start;
 
 	void* getData() { return &data_start; }

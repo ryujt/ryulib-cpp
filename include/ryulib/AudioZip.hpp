@@ -28,6 +28,7 @@ public:
 			if (OnError_ != nullptr) OnError_(this, error_code);
 		});
 		audio_capture_->setOnData([&](const void* obj, const void* buffer, int buffer_size) {
+			if (OnSource_ != nullptr) OnSource_(this, buffer, buffer_size);
 			audio_encoder_->add(buffer, buffer_size);
 		});
 	}
@@ -128,7 +129,12 @@ public:
 	@param event 에러가 났을 때 실행될 이벤트 핸들러 */
 	void setOnError(IntegerEvent event) { OnError_ = event; }
 
-	/** 
+	/**
+	OnSource 이벤트 핸들러를 지정한다.
+	@param event 압축되기 전 원본 오디오가 발생했을 때 실행될 이벤트 핸들러 */
+	void setOnSource(DataEvent event) { OnSource_ = event; }
+
+	/**
 	OnEncode 이벤트 핸들러를 지정한다.
 	@param event 오디오가 압축되었을 때 실행될 이벤트 핸들러 */
 	void setOnEncode(DataEvent event) { audio_encoder_->setOnEncode(event); }
@@ -141,6 +147,7 @@ private:
 	int sampe_rate = 44100;
 
 	IntegerEvent OnError_ = nullptr;
+	DataEvent OnSource_ = nullptr;
 };
 
 
