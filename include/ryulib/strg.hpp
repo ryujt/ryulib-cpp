@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string>
 #include <algorithm>
+#include<ctime>
 
 using namespace std;
 
