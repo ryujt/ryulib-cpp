@@ -3,37 +3,30 @@
 #include <Windows.h>
 #include <string>
 #include <ryulib/base.hpp>
+#include <ryulib/strg.hpp>
 #include <ryulib/Worker.hpp>
 
 using namespace std;
 using namespace ryulib;
 
 class PipeSender {
-private:
-    const static int TASK_OPEN = 1;
-    const static int TASK_CLOSE = 2;
-    const static int TASK_SEND = 3;
-
 public:
     PipeSender()
     {
-        worker_.setOnTask([&](int task, const string text, const void* data, int size, int tag) {
-            switch (task) {
-                case TASK_OPEN: do_open((HANDLE) tag);  break;
-                case TASK_CLOSE: do_close(); break;
-                case TASK_SEND: do_send((Memory*) data); break;
-            }
-        });
     }
 
     ~PipeSender()
     {
-        worker_.terminateAndWait();
+        close();
     }
 
-    bool open(LPCWSTR name)
+    bool open(string name)
     {
-        HANDLE pipe = CreateNamedPipe(name,
+        if (worker_ != nullptr) return false;
+
+        LPCWSTR ws_name = StringToWideChar(name);
+
+        HANDLE pipe = CreateNamedPipe(ws_name,
             PIPE_ACCESS_OUTBOUND,
             PIPE_TYPE_BYTE,
             1, 0, 0, 0, NULL);
@@ -41,50 +34,44 @@ public:
             return false;
         }
 
-        worker_.add(TASK_OPEN, nullptr, 0, (int) pipe);
+        if (ConnectNamedPipe(pipe, NULL) == FALSE) {
+            CloseHandle(pipe);
+            pipe_ = INVALID_HANDLE_VALUE;
+            return false;
+        }
+
+        worker_ = new Worker();
+        worker_->setOnTask([&](int task, const string text, const void* data, int size, int tag) {
+            do_send((Memory*) data);
+        });
 
         return true;
     }
 
     void close()
     {
-        worker_.add(TASK_CLOSE);
+        if (worker_ == nullptr) return;
+
+        worker_->terminateAndWait();
+        delete worker_;
+        worker_ = nullptr;
+
+        if (pipe_ != INVALID_HANDLE_VALUE) {
+            FlushFileBuffers(pipe_);
+            CloseHandle(pipe_);
+        }
+
+        pipe_ = INVALID_HANDLE_VALUE;
     }
 
     void send(const void* data, int size)
     {
-        if (is_connected_) worker_.add(TASK_SEND, new Memory(data, size), 0, 0);
+        if (worker_ != nullptr) worker_->add(0, new Memory(data, size), 0, 0);
     }
-
-    bool isConnected() { return is_connected_; }
 
 private:
     HANDLE pipe_ = INVALID_HANDLE_VALUE;
-    Worker worker_;
-    bool is_connected_ = false;
-
-    void do_open(HANDLE pipe)
-    {
-        pipe_ = pipe;
-        if (ConnectNamedPipe(pipe, NULL) == FALSE) {
-            CloseHandle(pipe);
-            pipe_ = INVALID_HANDLE_VALUE;
-            return;
-        }
-
-        is_connected_ = true;
-    }
-
-    void do_close()
-    {
-        is_connected_ = false;
-
-        if (pipe_ == INVALID_HANDLE_VALUE) return;
-
-        FlushFileBuffers(pipe_);
-        CloseHandle(pipe_);
-        pipe_ = INVALID_HANDLE_VALUE;
-    }
+    Worker* worker_ = nullptr;
 
     void do_send(Memory* data)
     {
