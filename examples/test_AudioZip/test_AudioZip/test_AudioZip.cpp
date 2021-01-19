@@ -10,15 +10,19 @@ int main(void) {
 
 	AudioUnZip unzip(1, 48000);
 	unzip.setOnError([&](const void* obj, int error_code) {
-		printf("AudioUnZip - error: %d", error_code);
+		printf("AudioUnZip - error: %d \n", error_code);
 	});
 
 	AudioZip zip(1, 48000);
 	zip.setOnError([&](const void* obj, int error_code) {
-		printf("AudioZip - error: %d", error_code);
+		printf("AudioZip - error: %d \n", error_code);
+	});
+	zip.setOnSource([&](const void* obj, const void* data, int size) {
+		printf("OnSource - size: %d \n", size);
 	});
 	zip.setOnEncode([&](const void* obj, const void* data, int size) {
-		unzip.play(data, size);
+		//printf("OnEncode - size: %d \n", size);
+		//unzip.play(data, size);
 	});
 
 	while (true) {

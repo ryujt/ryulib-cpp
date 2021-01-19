@@ -55,6 +55,11 @@ public:
 		object->setOnEncode(on_encode_);
 		object->setOnError(on_error_);
 	}
+
+	~AudioZipHandle()
+	{
+		delete object;
+	}
 };
 
 class AudioUnZipHandle {
@@ -75,6 +80,11 @@ public:
 	{
 		object = new AudioUnZip(CHANNEL, SAMPLE_RATE);
 		object->setOnError(on_error_);
+	}
+
+	~AudioUnZipHandle()
+	{
+		delete object;
 	}
 };
 
