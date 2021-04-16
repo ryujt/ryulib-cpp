@@ -21,7 +21,7 @@ int main()
 	});
 
 	socket.setOnReceived([](Packet* packet){
-		printf("Received: %s \n", packet->getString().c_str());
+		printf("Received: %s \n", packet->getText());
 	});
 
 	socket.connect("127.0.0.1", 1234);

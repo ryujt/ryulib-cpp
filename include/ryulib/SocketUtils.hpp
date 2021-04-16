@@ -15,7 +15,14 @@ const int ERROR_WRITE = -3;
 
 using namespace std;
 
+typedef function<void(int code, string msg)> SocketErrorEvent;
+
 #pragma pack(push, 1)
+typedef struct _PacketHeader {
+	unsigned short packet_size;
+	unsigned char packet_type;
+} PacketHeader;
+
 typedef struct _Packet {
 	unsigned short packet_size;
 	unsigned char packet_type;
