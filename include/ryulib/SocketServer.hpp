@@ -72,6 +72,8 @@ public:
 	string user_pw;
 	int user_level = 0;
 
+	unsigned int getID() { return id_; }
+
 private:
 	Connection(SocketServerInterface* server, boost::asio::io_context& io_context)
 		: server_(server), socket_(io_context) 
