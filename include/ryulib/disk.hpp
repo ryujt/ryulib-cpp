@@ -13,6 +13,22 @@
 
 using namespace std;
 
+static bool fileExists(const std::string& name)
+{
+    struct stat stat_;
+    return (stat(name.c_str(), &stat_) == 0);
+}
+
+
+static int getFileSize(string filename) {
+    struct stat stat_;
+    int rc = stat(filename.c_str(), &stat_);
+    if (rc != 0) {
+        return 0;
+    }
+    return stat_.st_size;
+}
+
 #ifdef _WIN32
 static string getExecFilename()
 {
