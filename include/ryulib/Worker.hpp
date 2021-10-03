@@ -8,8 +8,6 @@
 using namespace std;
 using namespace ryulib;
 
-const int TASK_STRING = -1;
-
 class TaskOfWorker
 {
 public:
@@ -55,8 +53,8 @@ public:
 		queue_.push(t);
 	}
 
-	void add(string text) {
-		TaskOfWorker* t = new TaskOfWorker(TASK_STRING, text, nullptr, 0, 0);
+	void add(int task, string text) {
+		TaskOfWorker* t = new TaskOfWorker(task, text, nullptr, 0, 0);
 		queue_.push(t);
 	}
 
