@@ -63,6 +63,11 @@ public:
 		queue_.push(t);
 	}
 
+	void add(int task, void* data, int size) {
+		TaskOfWorker* t = new TaskOfWorker(task, "", data, size, 0);
+		queue_.push(t);
+	}
+
 	void add(int task, void* data, int size, int tag) {
 		TaskOfWorker* t = new TaskOfWorker(task, "", data, size, tag);
 		queue_.push(t);
