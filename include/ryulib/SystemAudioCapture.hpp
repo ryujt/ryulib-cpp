@@ -56,8 +56,9 @@ public:
 	void start(int channels, int sample_rate, int sample_size, int frames)
 	{
 		do_clear();
+		
+		if (system_audio_.open() == false) return ;
 
-		system_audio_.open();
 		audio_resampling_.open(
 			system_audio_.getChannels(),
 			system_audio_.getSamples(),
