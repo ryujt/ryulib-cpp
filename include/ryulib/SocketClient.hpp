@@ -11,10 +11,9 @@
 #include <ryulib/SimpleThread.hpp>
 
 using namespace std;
-using boost::asio::ip::tcp;
+using namespace std;
 
-typedef function<void()> ClientSocketEvent;
-typedef function<void(Packet*)> ClientReceivedEvent;
+using boost::asio::ip::tcp;
 
 class SocketClient {
 public:
@@ -39,7 +38,7 @@ public:
 		tcp::endpoint endpoint(boost::asio::ip::address::from_string(host), port);
 		socket_->async_connect(endpoint, boost::bind(&SocketClient::connect_handler, this, boost::asio::placeholders::error));
 
-		simple_thread_ = make_unique<SimpleThread>([&](SimpleThread* simple_thread){ 
+		simple_thread_ = make_unique<SimpleThread>([&](SimpleThread* simple_thread){
 			io_->run();
 		});
 	}
@@ -73,9 +72,9 @@ public:
 	}
 
 	void setOnError(SocketErrorEvent event) { on_error_ = event; }
-	void setOnConnected(ClientSocketEvent event) { on_connected_ = event; }
-	void setOnDisconnected(ClientSocketEvent event) { on_disconnected_ = event; }
-	void setOnReceived(ClientReceivedEvent event) { on_received_ = event; }
+	void setOnConnected(VoidEvent event) { on_connected_ = event; }
+	void setOnDisconnected(VoidEvent event) { on_disconnected_ = event; }
+	void setOnReceived(PacketEvent event) { on_received_ = event; }
 
 private:
 	Packet* receive_buffer_ = nullptr;
@@ -85,9 +84,9 @@ private:
 	unique_ptr<SimpleThread> simple_thread_ = nullptr;
 
 	SocketErrorEvent on_error_ = nullptr;
-	ClientSocketEvent on_connected_ = nullptr;
-	ClientSocketEvent on_disconnected_ = nullptr;
-	ClientReceivedEvent on_received_ = nullptr;
+	VoidEvent on_connected_ = nullptr;
+	VoidEvent on_disconnected_ = nullptr;
+	PacketEvent on_received_ = nullptr;
 
 	void do_disconnect()
 	{
@@ -96,8 +95,8 @@ private:
 	}
 
 	void do_send(void* data, int size) {
-		boost::asio::async_write(*socket_, 
-			boost::asio::buffer(data, size), 
+		boost::asio::async_write(*socket_,
+			boost::asio::buffer(data, size),
 			boost::bind(&SocketClient::handle_write, this, boost::asio::placeholders::error)
 		);
 	}

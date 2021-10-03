@@ -41,6 +41,8 @@ typedef struct _Packet {
 } Packet;
 #pragma pack(pop)
 
+typedef function<void(Packet*)> PacketEvent;
+
 static Packet* create_packet(char packet_type, const void* data, int size)
 {
 	Packet* packet = (Packet*) malloc(size + sizeof(Packet) - 1);
