@@ -9,7 +9,8 @@
 #include <stdlib.h>
 #include <string>
 #include <algorithm>
-#include<ctime>
+#include <ctime>
+#include <random>
 
 using namespace std;
 
@@ -180,10 +181,13 @@ static string getRandomString(int len)
 { 
     static const char alphanum[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"; 
 
-    srand(time(NULL));
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<int> dis(0, sizeof(alphanum) - 2);
+
     char* temp = new char[len+1];
-    for (int i = 0; i < len; ++i) { 
-        temp[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
+    for (int i = 0; i < len; i++) { 
+        temp[i] = alphanum[dis(gen)];
     } 
     temp[len] = 0;
     return string(temp);
