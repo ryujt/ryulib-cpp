@@ -48,6 +48,11 @@ public:
 		thread_->terminateAndWait();
 	}
 
+	void sleep(int millis)
+	{
+		thread_->sleep(millis);
+	}
+
 	void add(int task) {
 		TaskOfWorker* t = new TaskOfWorker(task, "", nullptr, 0, 0);
 		queue_.push(t);
