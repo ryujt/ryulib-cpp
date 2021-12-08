@@ -26,6 +26,7 @@ public:
 	{
 		thread_ = std::thread([&]() {
 			on_execute_(this);
+			if (on_terminated_ != nullptr) on_terminated_(this);
 		});
 	}
 		
@@ -36,12 +37,16 @@ public:
 
 	void sleep(int millis)
 	{
+		if (is_terminated_ == false) return;
+
 		std::unique_lock<std::mutex> lock(mutex_);
 		condition_.wait_for(lock, std::chrono::milliseconds(millis));
 	}
 
 	void sleepTight()
 	{
+		if (is_terminated_ == false) return;
+
 		std::unique_lock<std::mutex> lock(mutex_);
 		condition_.wait(lock);
 	}
@@ -55,7 +60,7 @@ public:
 	void terminate()
 	{
 		is_terminated_ = true;
-		wakeUp();
+		thread_.detach();
 	}
 
 	void terminateAndWait()
@@ -73,9 +78,13 @@ public:
 		#elif _WIN32
 			TerminateThread(thread_.native_handle(), 0);
 		#endif	
+		if (on_terminated_ != nullptr) on_terminated_(this);
 	}
 
 	bool isTerminated() { return is_terminated_;  }
+
+	void setOnTerminated(NotifyEvent event) { on_terminated_ = event; }
+
 private:
 	std::thread thread_;
 	std::mutex mutex_;
@@ -83,7 +92,8 @@ private:
 
 	bool is_terminated_;
 
-	SimpleThreadEvent on_execute_;
+	SimpleThreadEvent on_execute_ = nullptr;
+	NotifyEvent on_terminated_ = nullptr;
 };
 
 #endif  // RYULIB_SIMPLETHREAD_HPP
