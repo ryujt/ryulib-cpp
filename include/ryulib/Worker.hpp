@@ -40,7 +40,6 @@ public:
 	void terminateNow()
 	{
 		thread_->terminateNow();
-		if (on_terminated_ != nullptr) on_terminated_(this);
 	}
 
 	void terminateAndWait()
@@ -80,15 +79,14 @@ public:
 
 	bool is_empty() { return queue_.is_empty(); }
 
-	void setOnTask(const TaskEvent& event) { on_task_ = event; }
-	void setOnTerminated(const NotifyEvent& event) { on_terminated_ = event; }
+	void setOnTask(TaskEvent event) { on_task_ = event; }
+	void setOnTerminated(NotifyEvent event) { thread_->setOnTerminated(event); }
 
 private:
 	bool started_ = false;
 	SuspensionQueue<TaskOfWorker*> queue_;
 
 	TaskEvent on_task_ = nullptr;
-	NotifyEvent on_terminated_ = nullptr;
 
 	SimpleThread* thread_;
 	SimpleThreadEvent on_thread_execute = [&](SimpleThread * simpleThread) {
@@ -100,8 +98,6 @@ private:
 
 			delete t;
 		}
-
-		if (on_terminated_ != nullptr) on_terminated_(this);
 	};
 };
 
