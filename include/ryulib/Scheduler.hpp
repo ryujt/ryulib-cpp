@@ -47,7 +47,6 @@ public:
 	void terminateNow()
 	{
 		thread_->terminateNow();
-		if (on_terminated_ != nullptr) on_terminated_(this);
 	}
 
 	void terminateAndWait()
@@ -95,9 +94,9 @@ public:
 
 	bool is_empty() { return queue_.is_empty(); }
 
-	void setOnTask(const TaskEvent& value) { on_task_ = value; }
-	void setOnRepeat(const VoidEvent& value) { on_repeat_ = value; }
-	void setOnTerminated(const NotifyEvent& event) { on_terminated_ = event; }
+	void setOnTask(TaskEvent value) { on_task_ = value; }
+	void setOnRepeat(VoidEvent value) { on_repeat_ = value; }
+	void setOnTerminated(NotifyEvent event) { thread_->setOnTerminated(event); }
 
 private:
 	bool started_ = false;
@@ -106,7 +105,6 @@ private:
 
 	TaskEvent on_task_ = nullptr;
 	VoidEvent on_repeat_ = nullptr;
-	NotifyEvent on_terminated_ = nullptr;
 
 	SimpleThreadEvent on_thread_execute = [&](SimpleThread* simpleThread) {
 		while (simpleThread->isTerminated() == false) {
@@ -126,8 +124,6 @@ private:
 				thread_->sleep(1);
 			}
 		}
-
-		if (on_terminated_ != nullptr) on_terminated_(this);
 	};
 };
 
