@@ -8,6 +8,8 @@
 #endif
 
 #include <string>
+#include <iostream>
+#include <fstream>
 #include <boost/filesystem.hpp>
 #include <ryulib/strg.hpp>
 
