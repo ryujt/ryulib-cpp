@@ -13,16 +13,17 @@ int main(void) {
 		printf("AudioUnZip - error: %d \n", error_code);
 	});
 
+	int count = 0;
+
 	AudioZip zip(1, 48000);
 	zip.setOnError([&](const void* obj, int error_code) {
 		printf("AudioZip - error: %d \n", error_code);
 	});
 	zip.setOnSource([&](const void* obj, const void* data, int size) {
-		printf("OnSource - size: %d \n", size);
+		printf("OnSource - %d, size: %d \r", ++count, size);
 	});
 	zip.setOnEncode([&](const void* obj, const void* data, int size) {
-		//printf("OnEncode - size: %d \n", size);
-		//unzip.play(data, size);
+		unzip.play(data, size);
 	});
 
 	while (true) {
