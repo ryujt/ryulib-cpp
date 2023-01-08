@@ -67,6 +67,8 @@ public:
 		mic_ = nullptr;
 	}
 
+	bool isMicMuted() { return is_mic_muted_; }
+	bool isSystemMuted() { return is_system_muted_; }
 	float getMicVolume() { return volume_mic_; }
 	float getSystemVolume() { return volume_system_; }
 
@@ -105,14 +107,12 @@ private:
 	void on_data(AudioInput* sender, const void* buffer, int buffer_size)
 	{
 		void* mic_audio = (void*) buffer;
+		float* system = (float*) silent_audio_->getData();
 
-		Memory* system_audio = system_audio_.getAudioData();
-		if (option_.use_system_audio == true) {
-			if (is_system_muted_ || (system_audio == nullptr)) {
-				system_audio = silent_audio_;
-			}
-		} else {
-			system_audio = silent_audio_;
+		Memory* system_audio = nullptr;
+		if (option_.use_system_audio) {
+			system_audio = system_audio_.getAudioData();
+			if ((system_audio != nullptr) && (is_system_muted_ == false)) system = (float*) system_audio->getData();
 		}
 
 		if (is_mic_muted_) {
@@ -120,7 +120,6 @@ private:
 		};
 
 		float* mic = (float*) mic_audio;
-		float* system = (float*) system_audio->getData();
 		float* dst = (float*) audio_data_->getData();
 		for (int i = 0; i < (buffer_size / sizeof(float)); i++) {
 			*dst = *mic * volume_mic_ + *system * volume_system_;
@@ -129,7 +128,7 @@ private:
 			dst++;
 		}
 
-		if (system_audio != silent_audio_) delete system_audio;
+		if (system_audio != nullptr) delete system_audio;
 
 		if (on_data_ != nullptr) on_data_(this, audio_data_->getData(), audio_data_->getSize());
 	}
