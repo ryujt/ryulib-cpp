@@ -13,12 +13,15 @@ int main()
 
     AudioCapture audioCapture;
 
+    int count = 0;
     audioCapture.setOnData([&](const void* sender, const void* data, int size) {
-        printf("size: %d \r", size);
-        //delete data;
+        printf("no: %d, size: %d \r", ++count, size);
     });
 
-    audioCapture.start(option);
+    if (audioCapture.start(option) == false) {
+        printf("Error - audioCapture.start(option)");
+        return -1;
+    }
 
     while (true) {
         // 
