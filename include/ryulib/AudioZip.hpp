@@ -2,7 +2,7 @@
 #define AUDIOZIP_HPP
 
 #include <ryulib/base.hpp>
-#include <ryulib/AudioCapture.hpp>
+#include <WASAPI/AudioCapture.hpp>
 #include <ryulib/AudioZipUtils.hpp>
 #include <ryulib/AudioIO.hpp>
 #include <ryulib/AudioEncoder.hpp>
@@ -95,17 +95,17 @@ public:
 	/**
 	마이크 소리를 소거할지 결정한다.
 	@param value 마이크 소리를 끌지 여부 */
-	void setMicMuted(bool value)
+	void setMicMute(bool value)
 	{
-		audio_capture_->setMicMuted(value);
+		audio_capture_->setMicMute(value);
 	}
 
 	/**
 	시스템 오디오 소리를 소거할지 결정한다.
 	@param value 시스템 오디오 소리를 끌지 여부 */
-	void setSystemMuted(bool value)
+	void setSystemMute(bool value)
 	{
-		audio_capture_->setSystemMuted(value);
+		audio_capture_->setSystemMute(value);
 	}
 
 	/**
