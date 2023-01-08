@@ -73,7 +73,7 @@ public:
 	float getSystemVolume() { return volume_system_; }
 
 	void setMicMute(bool value) { is_mic_muted_ = value; }
-	void setSystemMute(bool value) { is_mic_muted_ = value; }
+	void setSystemMute(bool value) { is_system_muted_ = value; }
 
 	void setMicVolume(float value) { volume_mic_ = value; }
 	void setSystemVolume(float value) { volume_system_ = value; }
