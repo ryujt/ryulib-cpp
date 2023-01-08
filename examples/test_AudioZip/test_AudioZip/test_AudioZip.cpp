@@ -31,7 +31,7 @@ int main(void) {
 		string line;
 		getline(cin, line);
 
-		if (line == "s") zip.start();
+		if (line == "s") zip.start(-1);
 		if (line == "t") zip.stop();
 	}
 }
