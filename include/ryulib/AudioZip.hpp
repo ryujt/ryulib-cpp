@@ -41,15 +41,17 @@ public:
 
 	/** 
 	오디오 캡쳐 및 압축을 시작한다.
-	@param device_id 오디오를 캡쳐할 디바이스 아이디 - 1은 기본 입력 장치 
+	@param device_id 오디오를 캡쳐할 디바이스 아이디 - 1은 기본 입력 장치
+	@param use_system_audio PC에서 재생되는 소리를 캡쳐할 것인지 여부
 	@return 성공하면 true, 오류가 발생하면 false가 리턴된다.
 	*/
-	bool start(int device_id = -1)
+	bool start(int device_id, bool use_system_audio = false)
 	{
 		AudioCaptureOption option;
 		option.mic_device_id = device_id;
 		option.sample_rate = SAMPLE_RATE;
 		option.frames = FRAMES_PER_BUFFER;
+		option.use_system_audio = use_system_audio;
 		return audio_capture_->start(option);
 	}
 
