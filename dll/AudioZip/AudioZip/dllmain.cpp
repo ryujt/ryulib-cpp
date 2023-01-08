@@ -98,9 +98,9 @@ extern "C" __declspec(dllexport) AudioZipHandle* createAudioZip(void* context, C
 	return new AudioZipHandle(context, on_source, on_encode, on_error);
 }
 
-extern "C" __declspec(dllexport) bool startAudioZip(AudioZipHandle* handle, int device_id)
+extern "C" __declspec(dllexport) bool startAudioZip(AudioZipHandle* handle, int device_id, bool use_system_audio)
 {
-	return handle->object->start(device_id);
+	return handle->object->start(device_id, use_system_audio);
 }
 
 extern "C" __declspec(dllexport) void stopAudioZip(AudioZipHandle* handle)
@@ -128,14 +128,14 @@ extern "C" __declspec(dllexport) float getSystemVolume(AudioZipHandle * handle)
 	return handle->object->getSystemVolume();
 }
 
-extern "C" __declspec(dllexport) void setMicMuted(AudioZipHandle * handle, bool value)
+extern "C" __declspec(dllexport) void setMicMute(AudioZipHandle * handle, bool value)
 {
-	handle->object->setMicMuted(value);
+	handle->object->setMicMute(value);
 }
 
-extern "C" __declspec(dllexport) void setSystemMuted(AudioZipHandle * handle, bool value)
+extern "C" __declspec(dllexport) void setSystemMute(AudioZipHandle * handle, bool value)
 {
-	handle->object->setSystemMuted(value);
+	handle->object->setSystemMute(value);
 }
 
 extern "C" __declspec(dllexport) void setMicVolume(AudioZipHandle * handle, float volume)
