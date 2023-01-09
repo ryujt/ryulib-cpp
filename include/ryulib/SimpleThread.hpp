@@ -13,6 +13,7 @@
 #include <functional>
 
 using namespace std;
+using namespace ryulib;
 
 class SimpleThread;
 
