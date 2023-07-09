@@ -55,7 +55,7 @@ public:
 	}
 };
 
-extern "C" __declspec(dllexport) void initAudioZip()
+extern "C" __declspec(dllexport) void initAudioCapture()
 {
 	Audio::init();
 }
@@ -120,7 +120,7 @@ extern "C" __declspec(dllexport) void setSystemVolume(AudioCaptureHandle * handl
 	handle->object->setSystemVolume(volume);
 }
 
-extern "C" __declspec(dllexport) void releaseAudioZip(AudioCaptureHandle * handle)
+extern "C" __declspec(dllexport) void releaseAudioCapture(AudioCaptureHandle * handle)
 {
 	handle->object->setOnError(nullptr);
 	handle->object->setOnData(nullptr);
