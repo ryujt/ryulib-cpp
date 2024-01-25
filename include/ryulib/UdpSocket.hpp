@@ -1,11 +1,8 @@
 #pragma once
 
-#include <iostream>
 #include <string>
 #include <winsock2.h>
 #include <WS2tcpip.h>
-#include <locale>
-#include <codecvt>
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -38,13 +35,13 @@ public:
 private:
     UdpSocket() {
         if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-            throw runtime_error("Failed to initialize winsock");
+            throw "Failed to initialize winsock";
         }
 
         sock = socket(AF_INET, SOCK_DGRAM, 0);
         if (sock == INVALID_SOCKET) {
             WSACleanup();
-            throw runtime_error("Failed to create socket");
+            throw "Failed to create socket";
         }
 
         memset(&addr, 0, sizeof(addr));
