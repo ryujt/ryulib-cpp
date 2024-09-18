@@ -20,7 +20,7 @@ typedef function<void(const void*, int)> IntegerEvent;
 typedef function<void(const const const void*, Memory*)> MemoryEvent;
 typedef function<void(const void*, const void*, int)> DataEvent;
 typedef function<bool(const void*)> AskEvent;
-typedef function<void(int, const string, const void*, int, int)> TaskEvent;
+typedef function<void(int, const string, void*, int, int)> TaskEvent;
 
 /** 
 메모리 할당을 받아서 포인터와 크기를 함께 묶어서 사용하는 데이터 클래스 */
