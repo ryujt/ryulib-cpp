@@ -20,9 +20,10 @@ int main(void) {
 		printf("AudioZip - error: %d \n", error_code);
 	});
 	zip.setOnSource([&](const void* obj, const void* data, int size) {
-		printf("OnSource - %d, size: %d \r", ++count, size);
+		printf("OnSource - %d, size: %d, ", ++count, size);
 	});
 	zip.setOnEncode([&](const void* obj, const void* data, int size) {
+		printf("OnEncode - size: %d \r", size);
 		unzip.play(data, size);
 	});
 

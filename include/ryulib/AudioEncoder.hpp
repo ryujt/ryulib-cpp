@@ -64,8 +64,8 @@ private:
 		while (thread->isTerminated() == false) {
 			Memory* data = queue_->pop();
 
-			char buffer[FRAMES_PER_BUFFER * SAMPLE_SIZE * CHANNEL];
-			int size_out = opus_encode_float(opus_, (float*) data->getData(), FRAMES_PER_BUFFER, (unsigned char*) buffer, sizeof(buffer));
+			static unsigned char buffer[FRAMES_PER_BUFFER * SAMPLE_SIZE * CHANNEL];
+			int size_out = opus_encode_float(opus_, (float*) data->getData(), FRAMES_PER_BUFFER, buffer, sizeof(buffer));
 			if (OnEncode_ != nullptr) OnEncode_(this, buffer, size_out);
 
 			delete data;
