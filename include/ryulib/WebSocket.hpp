@@ -26,7 +26,7 @@ public:
 
     ~WebSocket() {
         try {
-            close();
+            disconnect();
         }
         catch (...) {
             // Suppress any exceptions in destructor
@@ -35,7 +35,7 @@ public:
 
     void connect(const std::string& uri) {
         if (_isConnected || _isClosing) {
-            close();  // Ensure clean state before new connection
+            disconnect();  // Ensure clean state before new connection
         }
 
         try {
@@ -76,7 +76,7 @@ public:
         }
     }
 
-    void close() {
+    void disconnect() {
         std::lock_guard<std::mutex> lock(_mutex);
 
         if (_isClosing) return;  // 이미 종료 중이면 리턴
