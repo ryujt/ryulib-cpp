@@ -6,37 +6,38 @@
 #include <functional>
 #include <thread>
 #include <mutex>
+#include <atomic>
 
 class WebSocket {
 public:
     typedef websocketpp::client<websocketpp::config::asio_client> client_t;
     typedef websocketpp::config::asio_client::message_type::ptr message_ptr;
 
-    WebSocket() : _isConnected(false) {
+    WebSocket() : _isConnected(false), _isClosing(false) {
         try {
-            _client.init_asio();
-            _client.clear_access_channels(websocketpp::log::alevel::all);
-            _client.set_access_channels(websocketpp::log::alevel::none);
-
-            using websocketpp::lib::placeholders::_1;
-            using websocketpp::lib::placeholders::_2;
-            _client.set_open_handler(bind(&WebSocket::on_open, this, _1));
-            _client.set_fail_handler(bind(&WebSocket::on_fail, this, _1));
-            _client.set_close_handler(bind(&WebSocket::on_close, this, _1));
-            _client.set_message_handler(bind(&WebSocket::on_message, this, _1, _2));
+            initClient();
         }
         catch (const std::exception& e) {
             if (onErrorHandler) {
-                onErrorHandler(-1, "WebSocket initialization error: " + std::string(e.what()));
+                onErrorHandler(-1, "Constructor initialization error: " + std::string(e.what()));
             }
         }
     }
 
     ~WebSocket() {
-        Close();
+        try {
+            close();
+        }
+        catch (...) {
+            // Suppress any exceptions in destructor
+        }
     }
 
-    void Connect(const std::string& uri) {
+    void connect(const std::string& uri) {
+        if (_isConnected || _isClosing) {
+            close();  // Ensure clean state before new connection
+        }
+
         try {
             websocketpp::lib::error_code ec;
             client_t::connection_ptr con = _client.get_connection(uri, ec);
@@ -50,22 +51,66 @@ public:
 
             _hdl = con->get_handle();
             _client.connect(con);
-            _thread = std::thread([this]() { _client.run(); });
+
+            // Ensure thread cleanup
+            if (_thread.joinable()) {
+                _thread.join();
+            }
+
+            _thread = std::thread([this]() {
+                try {
+                    _client.run();
+                }
+                catch (const std::exception& e) {
+                    if (onErrorHandler) {
+                        onErrorHandler(-7, "Run error: " + std::string(e.what()));
+                    }
+                }
+                });
         }
         catch (const std::exception& e) {
             if (onErrorHandler) {
                 onErrorHandler(-2, "Connection error: " + std::string(e.what()));
             }
+            throw;
         }
     }
 
-    void Send(const void* data, size_t size) {
+    void close() {
+        std::lock_guard<std::mutex> lock(_mutex);
+
+        if (_isClosing) return;  // 이미 종료 중이면 리턴
+        _isClosing = true;
+
+        try {
+            if (_isConnected) {
+                websocketpp::lib::error_code ec;
+                _client.close(_hdl, websocketpp::close::status::normal, "Closing connection", ec);
+            }
+
+            _client.stop();  // 항상 stop 호출
+
+            if (_thread.joinable()) {
+                _thread.join();
+            }
+        }
+        catch (const std::exception& e) {
+            if (onErrorHandler) {
+                onErrorHandler(-5, "Close error: " + std::string(e.what()));
+            }
+        }
+
+        _isConnected = false;
+        _isClosing = false;
+    }
+
+    void send(const void* data, size_t size) {
         try {
             std::lock_guard<std::mutex> lock(_mutex);
 
-            if (!_isConnected) {
+            if (!_isConnected || _isClosing) {
                 if (onErrorHandler) {
-                    onErrorHandler(-3, "Cannot send: Not connected");
+                    onErrorHandler(-3, "Cannot send: Not connected or closing");
                 }
                 return;
             }
@@ -86,55 +131,38 @@ public:
         }
     }
 
-    void Close() {
-        try {
-            std::lock_guard<std::mutex> lock(_mutex);
-
-            if (!_isConnected) {
-                return;
-            }
-
-            websocketpp::lib::error_code ec;
-            _client.close(_hdl, websocketpp::close::status::normal, "Closing connection", ec);
-
-            if (ec) {
-                if (onErrorHandler) {
-                    onErrorHandler(-5, "Close error: " + ec.message());
-                }
-            }
-
-            _client.stop();
-
-            if (_thread.joinable()) {
-                _thread.join();
-            }
-
-            _isConnected = false;
-        }
-        catch (const std::exception& e) {
-            if (onErrorHandler) {
-                onErrorHandler(-5, "Close error: " + std::string(e.what()));
-            }
-        }
-    }
-
-    void SetOnConnected(std::function<void()> handler) {
+    void setOnConnected(std::function<void()> handler) {
         onConnectedHandler = handler;
     }
 
-    void SetOnError(std::function<void(int, std::string)> handler) {
+    void setOnError(std::function<void(int, std::string)> handler) {
         onErrorHandler = handler;
     }
 
-    void SetOnDisconnected(std::function<void()> handler) {
+    void setOnDisconnected(std::function<void()> handler) {
         onDisconnectedHandler = handler;
     }
 
-    void SetOnReceived(std::function<void(const void*, size_t)> handler) {
+    void setOnReceived(std::function<void(const void*, size_t)> handler) {
         onReceivedHandler = handler;
     }
 
 private:
+    void initClient() {
+        _client.clear_access_channels(websocketpp::log::alevel::all);
+        _client.set_access_channels(websocketpp::log::alevel::none);
+
+        _client.init_asio();
+
+        using websocketpp::lib::placeholders::_1;
+        using websocketpp::lib::placeholders::_2;
+
+        _client.set_open_handler(std::bind(&WebSocket::on_open, this, _1));
+        _client.set_fail_handler(std::bind(&WebSocket::on_fail, this, _1));
+        _client.set_close_handler(std::bind(&WebSocket::on_close, this, _1));
+        _client.set_message_handler(std::bind(&WebSocket::on_message, this, _1, _2));
+    }
+
     void on_open(websocketpp::connection_hdl hdl) {
         {
             std::lock_guard<std::mutex> lock(_mutex);
@@ -172,7 +200,8 @@ private:
     websocketpp::connection_hdl _hdl;
     std::thread _thread;
     std::mutex _mutex;
-    bool _isConnected;
+    std::atomic<bool> _isConnected;
+    std::atomic<bool> _isClosing;
 
     std::function<void()> onConnectedHandler;
     std::function<void(int, std::string)> onErrorHandler;
