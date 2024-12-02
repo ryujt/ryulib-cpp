@@ -18,7 +18,7 @@ public:
         }
         catch (const std::exception& e) {
             if (onErrorHandler) {
-                onErrorHandler(-1, "Constructor initialization error: " + std::string(e.what()));
+                onErrorHandler(-501, "Constructor initialization error: " + std::string(e.what()));
             }
         }
     }
@@ -43,7 +43,7 @@ public:
 
             if (ec) {
                 if (onErrorHandler) {
-                    onErrorHandler(-2, "Connection creation failed: " + ec.message());
+                    onErrorHandler(-502, "Connection creation failed: " + ec.message());
                 }
                 return;
             }
@@ -62,14 +62,14 @@ public:
                 }
                 catch (const std::exception& e) {
                     if (onErrorHandler) {
-                        onErrorHandler(-7, "Run error: " + std::string(e.what()));
+                        onErrorHandler(-507, "Run error: " + std::string(e.what()));
                     }
                 }
                 });
         }
         catch (const std::exception& e) {
             if (onErrorHandler) {
-                onErrorHandler(-2, "Connection error: " + std::string(e.what()));
+                onErrorHandler(-502, "Connection error: " + std::string(e.what()));
             }
             throw;
         }
@@ -95,7 +95,7 @@ public:
         }
         catch (const std::exception& e) {
             if (onErrorHandler) {
-                onErrorHandler(-5, "Close error: " + std::string(e.what()));
+                onErrorHandler(-505, "Close error: " + std::string(e.what()));
             }
         }
 
@@ -109,7 +109,7 @@ public:
 
             if (!_isConnected || _isClosing) {
                 if (onErrorHandler) {
-                    onErrorHandler(-3, "Cannot send: Not connected or closing");
+                    onErrorHandler(-503, "Cannot send: Not connected or closing");
                 }
                 return;
             }
@@ -119,13 +119,13 @@ public:
 
             if (ec) {
                 if (onErrorHandler) {
-                    onErrorHandler(-4, "Send error: " + ec.message());
+                    onErrorHandler(-504, "Send error: " + ec.message());
                 }
             }
         }
         catch (const std::exception& e) {
             if (onErrorHandler) {
-                onErrorHandler(-4, "Send error: " + std::string(e.what()));
+                onErrorHandler(-504, "Send error: " + std::string(e.what()));
             }
         }
     }
@@ -174,7 +174,7 @@ private:
 
     void on_fail(websocketpp::connection_hdl hdl) {
         if (onErrorHandler) {
-            onErrorHandler(-6, "Connection failed");
+            onErrorHandler(-506, "Connection failed");
         }
     }
 
