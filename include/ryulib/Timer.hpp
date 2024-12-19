@@ -24,7 +24,7 @@ namespace ryulib {
                 }
 
                 // sleep 시간을 더 길게 설정하여 CPU 사용률 감소
-                scheduler_.sleep(10);  // 10ms 간격으로 체크
+                scheduler_.sleep(100);  // 10ms 간격으로 체크
                 });
         }
 
