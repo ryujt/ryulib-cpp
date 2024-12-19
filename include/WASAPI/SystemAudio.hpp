@@ -196,24 +196,32 @@ private:
 		UINT32 packetLength = 0;
 		hr = pCaptureClient->GetNextPacketSize(&packetLength);
 		if (FAILED(hr)) {
-		 	//DebugOutput::trace("GetNextPacketSize() error = %d , hr = 0x%08x ", GetLastError(), hr);
+			//DebugOutput::trace("GetNextPacketSize() error = %d , hr = 0x%08x ", GetLastError(), hr);
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
 			return;
 		}
+
 		if (packetLength != 0) {
 			hr = pCaptureClient->GetBuffer(&pData, &numFramesAvailable, &flags, NULL, NULL);
 			if (FAILED(hr)) {
 				//DebugOutput::trace("GetNextPacketSize() error = %d , hr = 0x%08x", GetLastError(), hr);
+				std::this_thread::sleep_for(std::chrono::milliseconds(1));
 				return;
 			}
 
 			if ((flags & AUDCLNT_BUFFERFLAGS_SILENT) == false) {
-				int data_size_ = ((int) packetLength) * pwfx->nChannels * pwfx->wBitsPerSample / 8;
+				int data_size_ = ((int)packetLength) * pwfx->nChannels * pwfx->wBitsPerSample / 8;
 				if (on_data_ != nullptr) on_data_(this, pData, data_size_);
 			}
-		
+
 			pCaptureClient->ReleaseBuffer(numFramesAvailable);
-		} else {
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		}
+		else {
 			if (on_data_ != nullptr) on_data_(this, nullptr, 0);
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(5));
 		}
 	}
 };

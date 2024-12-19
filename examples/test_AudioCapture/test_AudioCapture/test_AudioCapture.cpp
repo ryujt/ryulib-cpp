@@ -7,9 +7,9 @@ int main()
     option.mic_device_id = -1;
     option.use_system_audio = true;
     option.channels = 1;
-    option.sample_rate = 44100;
+    option.sample_rate = 48000;
     option.sample_size = 4;
-    option.frames = 1024;
+    option.frames = 5760;
 
     AudioCapture audioCapture;
 
@@ -24,6 +24,6 @@ int main()
     }
 
     while (true) {
-        // 
+        Pa_Sleep(1000);
     }
 }

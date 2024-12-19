@@ -3,7 +3,7 @@
 int main(void) {
 	Audio::init();
 
-	AudioInput audio_input(1, 44100, 4, 882);
+	AudioInput audio_input(1, 48000, 4, 5760);
 	audio_input.setOnData([](const void* obj, const void* data, int size) {
 		printf("buffer_size: %d \n", size);
 	});
