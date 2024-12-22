@@ -32,7 +32,7 @@ int main(void) {
 		string line;
 		getline(cin, line);
 
-		if (line == "s") zip.start(-1);
+		if (line == "s") zip.start(-1, true);
 		if (line == "t") zip.stop();
 	}
 }
