@@ -130,9 +130,23 @@ public:
 		fin_values();
 	}
 
-	int getChannels() { return pwfx->nChannels; }
-	int getSamples() { return pwfx->nSamplesPerSec; }
-	int getBitsPerSample() { return pwfx->wBitsPerSample; }
+	int getChannels() 
+	{ 
+		if (pwfx == nullptr) return 0;
+		return pwfx->nChannels; 
+	}
+
+	int getSamples() 
+	{ 
+		if (pwfx == nullptr) return 0;
+		return pwfx->nSamplesPerSec; 
+	}
+
+	int getBitsPerSample() 
+	{ 
+		if (pwfx == nullptr) return 0;
+		return pwfx->wBitsPerSample; 
+	}
 
 	float getVolume()
 	{
